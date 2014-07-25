@@ -117,6 +117,7 @@ tools/OpenBLAS
 /src/bin/vector-sum
 /src/bin/est-pca
 /src/bin/matrix-sum-rows
+/src/bin/write-transition-labels
 
 # /src/cudamatrix/
 /src/cudamatrix/.depend.mk
