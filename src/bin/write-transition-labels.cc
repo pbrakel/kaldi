@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     std::string phones_symtab_filename = po.GetArg(1),
         transition_model_filename = po.GetArg(2),
-        disambiguation_filename = po.GetArg(3);
+        disambiguation_filename = po.GetOptArg(3);
 
     fst::SymbolTable *syms = fst::SymbolTable::ReadText(phones_symtab_filename);
     if (!syms)
