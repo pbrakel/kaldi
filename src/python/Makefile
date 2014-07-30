@@ -8,7 +8,11 @@ BINFILES =
 
 OBJFILES = 
 
-ADDLIBS = ../util/kaldi-util.a ../base/kaldi-base.a
+
+ADDLIBS = ../lm/kaldi-lm.a ../decoder/kaldi-decoder.a ../lat/kaldi-lat.a \
+          ../hmm/kaldi-hmm.a ../transform/kaldi-transform.a ../gmm/kaldi-gmm.a \
+	      ../tree/kaldi-tree.a ../matrix/kaldi-matrix.a  ../util/kaldi-util.a \
+          ../base/kaldi-base.a  ../thread/kaldi-thread.a
 
 TESTFILES =
 

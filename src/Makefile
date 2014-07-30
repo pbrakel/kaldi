@@ -141,11 +141,7 @@ $(EXT_SUBDIRS) : mklibdir
 # this is necessary for correct parallel compilation
 #1)The tools depend on all the libraries
 
-bin fstbin gmmbin fgmmbin sgmmbin sgmm2bin featbin nnetbin nnet2bin latbin ivectorbin: \
- base matrix util feat tree optimization thread gmm transform sgmm sgmm2 fstext hmm \
- lm decoder lat cudamatrix nnet nnet2 ivector
-
-bin fstbin gmmbin fgmmbin sgmmbin sgmm2bin featbin nnetbin nnet2bin latbin ivectorbin: \
+bin fstbin gmmbin fgmmbin sgmmbin sgmm2bin featbin nnetbin nnet2bin latbin ivectorbin python: \
  base matrix util feat tree optimization thread gmm transform sgmm sgmm2 fstext hmm \
  lm decoder lat cudamatrix nnet nnet2 ivector
 
@@ -175,4 +171,3 @@ onlinebin: base matrix util feat tree optimization gmm transform sgmm sgmm2 fste
 # python-kaldi-decoding: base matrix util feat tree optimization thread gmm transform sgmm sgmm2 fstext hmm decoder lat online
 online: decoder
 kwsbin: fstext lat base util
-python: base util matrix
