@@ -123,30 +123,6 @@ private:
 
 PickleWrapper * PyObjectHolder::PW_ = 0;
 
-////template<class Real>
-////class DataStealingMatrix: public kaldi::Matrix<Real> {
-////
-//// public:
-////  DataStealingMatrix() : kaldi::Matrix<Real>() {}
-////
-////  Real* steal_data() {
-////    Real* ret = this->data_;
-////    this->data_= NULL;
-////    return ret;
-////  }
-////};
-//
-////
-//// Helper python object holding a Kaldi matrix.
-//// Will free the matrix upon destruction
-////
-//
-//template<class Real>
-//struct _MatrixDeallocator {
-//  PyObject_HEAD
-//  std::auto_ptr<kaldi::Matrix<Real>> mat;
-//};
-
 //Helper to get proper np type
 template <class Real>
 int get_np_type() {
@@ -229,140 +205,54 @@ class NpWrapperVector : public kaldi::VectorBase<Real> {
   PyArrayObject* arr_;
 };
 
-//
-// Read kaldi matrices as NDArrays and store NDArrays ads Kaldi matrices
-//
-//
 template<class Real>
-class NdArrayAsMatrixCopyingHolder {
- public:
-  typedef bp::object T;
+struct MatrixToNdArrayConverter {
+  typedef kaldi::KaldiObjectHolder<kaldi::Matrix<Real> > HR;
+  typedef kaldi::KaldiObjectHolder<NpWrapperMatrix<Real> > HW;
 
-  NdArrayAsMatrixCopyingHolder() {
+  static inline bp::object kaldi_to_python(const kaldi::Matrix<Real>& mat) {
+    npy_intp dims[2];
+    dims[0] = mat.NumRows();
+    dims[1] = mat.NumCols();
+    int nd = 2;
+    int arr_type = get_np_type<Real>();
+    PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
+    bp::object arr=bp::object(bp::handle<>(
+        ao
+        ));
+    NpWrapperMatrix<Real> arr_wrap((PyArrayObject*)arr.ptr());
+    arr_wrap.CopyFromMat(mat);
+    return arr;
   }
 
-  static bool Write(std::ostream &os, bool binary, const T &t) {
-    kaldi::InitKaldiOutputStream(os, binary);  // Puts binary header if binary mode.
-    try {
-      NpWrapperMatrix<Real> arr_wrap((PyArrayObject*)t.ptr());
-      arr_wrap.Write(os,binary);
-      return os.good();
-    } catch (const std::exception &e) {
-      KALDI_WARN<< "Exception caught writing Table object: " << e.what();
-      if (!kaldi::IsKaldiError(e.what())) {std::cerr << e.what();}
-      return false;  // Write failure.
-    }
+  static inline NpWrapperMatrix<Real>* python_to_kaldi(bp::object o) {
+    return new NpWrapperMatrix<Real>((PyArrayObject*)o.ptr());
   }
-
-  bool Read(std::istream &is) {
-    bool is_binary;
-    if (!kaldi::InitKaldiInputStream(is, &is_binary)) {
-      KALDI_WARN << "Reading Table object [integer type], failed reading binary header\n";
-      return false;
-    }
-    try {
-      kaldi::Matrix<Real> mat;
-      mat.Read(is, is_binary);
-      npy_intp dims[2];
-      dims[0] = mat.NumRows();
-      dims[1] = mat.NumCols();
-      int nd = 2;
-      int arr_type = get_np_type<Real>();
-      PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
-      bp::object arr=bp::object(bp::handle<>(
-          ao
-          ));
-      NpWrapperMatrix<Real> arr_wrap((PyArrayObject*)arr.ptr());
-      arr_wrap.CopyFromMat(mat);
-      t_ = arr;
-      return true;
-    } catch (std::exception &e) {
-      KALDI_WARN << "Exception caught reading Table object";
-      if (!kaldi::IsKaldiError(e.what())) {std::cerr << e.what();}
-      return false;
-    }
-  }
-
-  static bool IsReadInBinary() {return true;}
-
-  const T &Value() const {return t_;}  // if t is a pointer, would return *t_;
-
-  void Clear() {}
-
-  ~NdArrayAsMatrixCopyingHolder() {}
-
-private:
-  KALDI_DISALLOW_COPY_AND_ASSIGN(NdArrayAsMatrixCopyingHolder);
-  T t_;  // t_ may alternatively be of type T*.
 };
 
-
-//
-// Read kaldi vectors as NDArrays and store NDArrays as Kaldi vectors
-//
-//
 template<class Real>
-class NdArrayAsVectorCopyingHolder {
- public:
-  typedef bp::object T;
+struct VectorToNdArrayConverter {
+  typedef kaldi::KaldiObjectHolder<kaldi::Vector<Real> > HR;
+  typedef kaldi::KaldiObjectHolder<NpWrapperVector<Real> > HW;
 
-  NdArrayAsVectorCopyingHolder() {
+  static inline bp::object kaldi_to_python(const kaldi::Vector<Real>& vec) {
+    npy_intp dims[1];
+    dims[0] = vec.Dim();
+    int nd = 1;
+    int arr_type = get_np_type<Real>();
+    PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
+    bp::object arr=bp::object(bp::handle<>(
+        ao
+        ));
+    NpWrapperVector<Real> vec_wrap((PyArrayObject*)arr.ptr());
+    vec_wrap.CopyFromVec(vec);
+    return arr;
   }
 
-  static bool Write(std::ostream &os, bool binary, const T &t) {
-    kaldi::InitKaldiOutputStream(os, binary);  // Puts binary header if binary mode.
-    try {
-      NpWrapperVector<Real> arr_wrap((PyArrayObject*)t.ptr());
-      arr_wrap.Write(os,binary);
-      return os.good();
-    } catch (const std::exception &e) {
-      KALDI_WARN<< "Exception caught writing Table object: " << e.what();
-      if (!kaldi::IsKaldiError(e.what())) {std::cerr << e.what();}
-      return false;  // Write failure.
-    }
+  static inline NpWrapperVector<Real>* python_to_kaldi(bp::object o) {
+    return new NpWrapperVector<Real>((PyArrayObject*)o.ptr());
   }
-
-  bool Read(std::istream &is) {
-    bool is_binary;
-    if (!kaldi::InitKaldiInputStream(is, &is_binary)) {
-      KALDI_WARN << "Reading Table object [integer type], failed reading binary header\n";
-      return false;
-    }
-    try {
-      kaldi::Vector<Real> vec;
-      vec.Read(is, is_binary);
-      npy_intp dims[1];
-      dims[0] = vec.Dim();
-      int nd = 1;
-      int arr_type = get_np_type<Real>();
-      PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
-      bp::object arr=bp::object(bp::handle<>(
-          ao
-          ));
-      NpWrapperVector<Real> vec_wrap((PyArrayObject*)arr.ptr());
-      vec_wrap.CopyFromVec(vec);
-      t_ = arr;
-      return true;
-    } catch (std::exception &e) {
-      KALDI_WARN << "Exception caught reading Table object";
-      if (!kaldi::IsKaldiError(e.what())) {std::cerr << e.what();}
-      return false;
-    }
-  }
-
-  static bool IsReadInBinary() {return true;}
-
-  const T &Value() const {return t_;}  // if t is a pointer, would return *t_;
-
-  void Clear() {}
-
-  ~NdArrayAsVectorCopyingHolder() {}
-
-private:
-  KALDI_DISALLOW_COPY_AND_ASSIGN(NdArrayAsVectorCopyingHolder);
-  T t_;  // t_ may alternatively be of type T*.
 };
-
 
 template<class T>
 struct VectorToListConverter {
@@ -547,37 +437,17 @@ BOOST_PYTHON_MODULE(kaldi_io)
   SequentialReaderWrapper<kaldi::SequentialTableReader<PyObjectHolder> >("SequentialPythonReader",bp::init<std::string>());
   WriterWrapper<kaldi::TableWriter<PyObjectHolder> >("PythonWriter", bp::init<std::string>());
 
-  //Matrices as NdArrays
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<NdArrayAsMatrixCopyingHolder<kaldi::BaseFloat> > >("RandomAccessBaseFloatMatrixReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<NdArrayAsMatrixCopyingHolder<kaldi::BaseFloat> > >("RandomAccessBaseFloatMatrixMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<NdArrayAsMatrixCopyingHolder<kaldi::BaseFloat> > >("SequentialBaseFloatMatrixReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<NdArrayAsMatrixCopyingHolder<kaldi::BaseFloat> > >("BaseFloatMatrixWriter", bp::init<std::string>());
-
-//  RandomAccessWrapper<kaldi::RandomAccessTableReader<NdArrayAsMatrixCopyingHolder<double> > >("RandomAccessDoubleMatrixReader", bp::init<std::string>());
-//  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<NdArrayAsMatrixCopyingHolder<double> > >("RandomAccessDoubleMatrixMapped",bp::init<std::string, std::string>());
-//  SequentialReaderWrapper<kaldi::SequentialTableReader<NdArrayAsMatrixCopyingHolder<double> > >("SequentialDoubleMatrixReader",bp::init<std::string>());
-//  WriterWrapper<kaldi::TableWriter<NdArrayAsMatrixCopyingHolder<double> > >("DoubleMatrixWriter", bp::init<std::string>());
-//
-//  RandomAccessWrapper<kaldi::RandomAccessTableReader<NdArrayAsMatrixCopyingHolder<float> > >("RandomAccessFloatMatrixReader", bp::init<std::string>());
-//  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<NdArrayAsMatrixCopyingHolder<float> > >("RandomAccessFloatMatrixMapped",bp::init<std::string, std::string>());
-//  SequentialReaderWrapper<kaldi::SequentialTableReader<NdArrayAsMatrixCopyingHolder<float> > >("SequentialFloatMatrixReader",bp::init<std::string>());
-//  WriterWrapper<kaldi::TableWriter<NdArrayAsMatrixCopyingHolder<float> > >("FloatMatrixWriter", bp::init<std::string>());
+  //Matrices as NdArrays - broken version
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatMatrixReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatMatrixMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("SequentialBaseFloatMatrixReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("BaseFloatMatrixWriter", bp::init<std::string>());
 
   //Vectors as NdArrays
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<NdArrayAsVectorCopyingHolder<kaldi::BaseFloat> > >("RandomAccessBaseFloatVectorReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<NdArrayAsVectorCopyingHolder<kaldi::BaseFloat> > >("RandomAccessBaseFloatVectorReaderMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<NdArrayAsVectorCopyingHolder<kaldi::BaseFloat> > >("SequentialBaseFloatVectorReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<NdArrayAsVectorCopyingHolder<kaldi::BaseFloat> > >("BaseFloatVectorWriter", bp::init<std::string>());
-
-//  RandomAccessWrapper<kaldi::RandomAccessTableReader<NdArrayAsVectorCopyingHolder<double> > >("RandomAccessDoubleVectorReader", bp::init<std::string>());
-//  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<NdArrayAsVectorCopyingHolder<double> > >("RandomAccessDoubleVectorReaderMapped",bp::init<std::string, std::string>());
-//  SequentialReaderWrapper<kaldi::SequentialTableReader<NdArrayAsVectorCopyingHolder<double> > >("SequentialDoubleVectorReader",bp::init<std::string>());
-//  WriterWrapper<kaldi::TableWriter<NdArrayAsVectorCopyingHolder<double> > >("DoubleVectorWriter", bp::init<std::string>());
-//
-//  RandomAccessWrapper<kaldi::RandomAccessTableReader<NdArrayAsVectorCopyingHolder<float> > >("RandomAccessFloatVectorReader", bp::init<std::string>());
-//  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<NdArrayAsVectorCopyingHolder<float> > >("RandomAccessFloatVectorReaderMapped",bp::init<std::string, std::string>());
-//  SequentialReaderWrapper<kaldi::SequentialTableReader<NdArrayAsVectorCopyingHolder<float> > >("SequentialFloatVectorReader",bp::init<std::string>());
-//  WriterWrapper<kaldi::TableWriter<NdArrayAsVectorCopyingHolder<float> > >("FloatVectorWriter", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatVectorReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatVectorReaderMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("SequentialBaseFloatVectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("BaseFloatVectorWriter", bp::init<std::string>());
 
   //Integers
   RandomAccessWrapper<kaldi::RandomAccessInt32Reader >("RandomAccessInt32Reader", bp::init<std::string>());
