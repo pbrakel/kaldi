@@ -19,7 +19,7 @@ TESTFILES =
 PYLIB = /opt/lisa/os/epd-7.1.2/bin
 PYINC = /opt/lisa/os/epd-7.1.2/include/python2.7
 
-PYLIBS = kaldi_io.so
+PYLIBS = kaldi_io_internal.so
 
 #include ../makefiles/default_rules.mk
 

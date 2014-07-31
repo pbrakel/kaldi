@@ -147,16 +147,19 @@ class NpWrapperMatrix : public kaldi::MatrixBase<Real> {
   NpWrapperMatrix(PyArrayObject* arr)
       : kaldi::MatrixBase<Real>(),
         arr_(arr) {
-    if (!PyArray_NDIM(arr_)==2) {
-      KALDI_ERR << "Can wrap only matrices (2D arrays)";
+    if (PyArray_NDIM(arr_)!=2) {
+      PyErr_SetString(PyExc_TypeError, "Can wrap only matrices (2D arrays)");
+      bp::throw_error_already_set();
     }
-    if (!PyArray_TYPE(arr)==get_np_type<Real>()) {
-      KALDI_ERR << "Wrong array dtype";
+    if (PyArray_TYPE(arr)!=get_np_type<Real>()) {
+      PyErr_SetString(PyExc_TypeError, "Wrong array dtype");
+      bp::throw_error_already_set();
     }
     npy_intp* dims = PyArray_DIMS(arr_);
     npy_intp* strides = PyArray_STRIDES(arr_);
     if (strides[1]!=sizeof(Real)) {
-      KALDI_ERR << "Wrong array column stride";
+      PyErr_SetString(PyExc_TypeError, "Wrong array column stride");
+      bp::throw_error_already_set();
     }
     Py_INCREF(arr_);
     //why do we have to use this-> in here??
@@ -180,16 +183,19 @@ class NpWrapperVector : public kaldi::VectorBase<Real> {
   NpWrapperVector(PyArrayObject* arr)
       : kaldi::VectorBase<Real>(),
         arr_(arr) {
-    if (!PyArray_NDIM(arr_)==1) {
-      KALDI_ERR << "Can wrap only vectors (1D arrays)";
+    if (PyArray_NDIM(arr_)!=1) {
+      PyErr_SetString(PyExc_TypeError, "Can wrap only vectors (1D arrays)");
+      bp::throw_error_already_set();
     }
-    if (!PyArray_TYPE(arr)==get_np_type<Real>()) {
-      KALDI_ERR << "Wrong array dtype";
+    if (PyArray_TYPE(arr)!=get_np_type<Real>()) {
+      PyErr_SetString(PyExc_TypeError, "Wrong array dtype");
+            bp::throw_error_already_set();
     }
     npy_intp* dims = PyArray_DIMS(arr_);
     npy_intp* strides = PyArray_STRIDES(arr_);
     if (strides[0]!=sizeof(Real)) {
-      KALDI_ERR << "Wrong array column stride";
+      PyErr_SetString(PyExc_TypeError, "Wrong array column stride");
+      bp::throw_error_already_set();
     }
     Py_INCREF(arr_);
     //why do we have to use this-> in here??
@@ -226,7 +232,10 @@ struct MatrixToNdArrayConverter {
   }
 
   static inline NpWrapperMatrix<Real>* python_to_kaldi(bp::object o) {
-    return new NpWrapperMatrix<Real>((PyArrayObject*)o.ptr());
+    PyObject* raw_arr = PyArray_FromAny(o.ptr(),PyArray_DescrFromType(get_np_type<Real>()), 2, 2, NPY_C_CONTIGUOUS | NPY_FORCECAST, NULL);
+    //why does this fail: bp::object arr(bp::handle<>(raw_arr));
+    bp::object arr=bp::object(bp::handle<>(raw_arr));
+    return new NpWrapperMatrix<Real>((PyArrayObject*)arr.ptr());
   }
 };
 
@@ -250,7 +259,10 @@ struct VectorToNdArrayConverter {
   }
 
   static inline NpWrapperVector<Real>* python_to_kaldi(bp::object o) {
-    return new NpWrapperVector<Real>((PyArrayObject*)o.ptr());
+    PyObject* raw_arr = PyArray_FromAny(o.ptr(),PyArray_DescrFromType(get_np_type<Real>()), 1, 1, NPY_C_CONTIGUOUS | NPY_FORCECAST, NULL);
+    //why does this fail: bp::object arr(bp::handle<>(raw_arr));
+    bp::object arr=bp::object(bp::handle<>(raw_arr));
+    return new NpWrapperVector<Real>((PyArrayObject*)arr.ptr());
   }
 };
 
@@ -427,9 +439,15 @@ public:
 };
 
 
-BOOST_PYTHON_MODULE(kaldi_io)
+PyObject* KALDI_BASE_FLOAT() {
+  return (PyObject*)PyArray_DescrFromType(get_np_type<kaldi::BaseFloat>());
+}
+
+BOOST_PYTHON_MODULE(kaldi_io_internal)
 {
   import_array();
+
+  bp::def("KALDI_BASE_FLOAT", &KALDI_BASE_FLOAT);
 
   //Python objects
   RandomAccessWrapper<kaldi::RandomAccessTableReader<PyObjectHolder> >("RandomAccessPythonReader", bp::init<std::string>());
@@ -437,17 +455,27 @@ BOOST_PYTHON_MODULE(kaldi_io)
   SequentialReaderWrapper<kaldi::SequentialTableReader<PyObjectHolder> >("SequentialPythonReader",bp::init<std::string>());
   WriterWrapper<kaldi::TableWriter<PyObjectHolder> >("PythonWriter", bp::init<std::string>());
 
-  //Matrices as NdArrays - broken version
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatMatrixReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatMatrixMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("SequentialBaseFloatMatrixReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<kaldi::BaseFloat> > > >("BaseFloatMatrixWriter", bp::init<std::string>());
+  //Matrices as NdArrays
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("RandomAccessDoubleMatrixReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("RandomAccessDoubleMatrixMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("SequentialDoubleMatrixReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("DoubleMatrixWriter", bp::init<std::string>());
+
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("RandomAccessFloatMatrixReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("RandomAccessFloatMatrixMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("SequentialFloatMatrixReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("FloatMatrixWriter", bp::init<std::string>());
 
   //Vectors as NdArrays
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatVectorReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("RandomAccessBaseFloatVectorReaderMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("SequentialBaseFloatVectorReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<kaldi::BaseFloat> > > >("BaseFloatVectorWriter", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("RandomAccessDoubleVectorReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("RandomAccessDoubleVectorReaderMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("SequentialDoubleVectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("DoubleVectorWriter", bp::init<std::string>());
+
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("RandomAccessFloatVectorReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("RandomAccessFloatVectorReaderMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("SequentialFloatVectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("FloatVectorWriter", bp::init<std::string>());
 
   //Integers
   RandomAccessWrapper<kaldi::RandomAccessInt32Reader >("RandomAccessInt32Reader", bp::init<std::string>());
