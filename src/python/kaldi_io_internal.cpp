@@ -266,45 +266,125 @@ struct VectorToNdArrayConverter {
   }
 };
 
-template<class T>
-struct VectorToListConverter {
-  typedef kaldi::BasicVectorHolder<T> HW,HR;
+//
+// Code transformend from http://code.activestate.com/lists/python-cplusplus-sig/16463/ and
+// http://misspent.wordpress.com/2009/09/27/how-to-write-boost-python-converters/
+//
+template<typename T>
+struct VectorToListBPConverter {
 
-  static inline bp::object kaldi_to_python(const std::vector<T>& vec) {
-    boost::python::list l;
+  static PyObject* convert(std::vector<T> const& vec) {
+    bp::list l;
     for (size_t i = 0; i < vec.size(); i++)
       l.append(vec[i]);
-    return l;
-  }
-
-  static inline std::vector<T> * python_to_kaldi(bp::object o) {
-    bp::stl_input_iterator<T> begin(o);
-    bp::stl_input_iterator<T> end;
-    std::vector<T> *v = new std::vector<T>();
-    v->insert(v->end(), begin, end);
-    return v;
+    return bp::incref(l.ptr());
   }
 };
 
-//template<class T>
-//struct VectorVectorToListListConverter {
-//  typedef kaldi::BasicVectorVectorHolder<T> HW,HR;
-//
-//  static inline bp::object kaldi_to_python(const std::vector<std::vector<T> >& vec) {
-//    boost::python::list l;
-//    for (size_t i = 0; i < vec.size(); i++)
-//      l.append(vec[i]);
-//    return l;
-//  }
-//
-//  static inline std::vector<std::vector<T> > * python_to_kaldi(bp::object o) {
-//    bp::stl_input_iterator<T> begin(o);
-//    bp::stl_input_iterator<T> end;
-//    std::vector<T> v;
-//    v.insert(v.end(), begin, end);
-//    return v;
-//  }
-//};
+template<typename T>
+struct VectorFromListBPConverter {
+  VectorFromListBPConverter() {
+    using namespace boost::python;
+    using namespace boost::python::converter;
+    bp::converter::registry::push_back(
+        &VectorFromListBPConverter<T>::convertible,
+        &VectorFromListBPConverter<T>::construct, type_id<std::vector<T> >());
+  }
+
+  // Determine if obj_ptr can be converted in a std::vector<T>
+  static void* convertible(PyObject* obj_ptr) {
+//    if (!PyIter_Check(obj_ptr)) {
+//      return 0;
+//    }
+    return obj_ptr;
+  }
+
+  // Convert obj_ptr into a std::vector<T>
+  static void construct(
+      PyObject* obj_ptr,
+      boost::python::converter::rvalue_from_python_stage1_data* data) {
+
+    bp::object o = bp::object(bp::handle<>(bp::borrowed(obj_ptr)));
+    bp::stl_input_iterator<T> begin(o);
+    bp::stl_input_iterator<T> end;
+
+    // Grab pointer to memory into which to construct the new std::vector<T>
+    void* storage = ((boost::python::converter::rvalue_from_python_storage<
+        std::vector<T> >*) data)->storage.bytes;
+
+    // in-place construct the new std::vector<T> using the character data
+    // extraced from the python object
+    std::vector<T>& v = *(new (storage) std::vector<T>());
+
+    v.insert(v.end(), begin, end);
+
+    // Stash the memory chunk pointer for later use by boost.python
+    data->convertible = storage;
+  }
+};
+
+template<typename T1, typename T2>
+struct PairToTupleBPConverter {
+
+  static PyObject* convert(std::pair<T1,T2> const& p) {
+    return bp::incref(bp::make_tuple(p.first, p.second).ptr());
+  }
+};
+
+template<typename T1, typename T2>
+struct PairFromTupleBPConverter {
+  PairFromTupleBPConverter() {
+    using namespace boost::python;
+    using namespace boost::python::converter;
+    bp::converter::registry::push_back(
+        &PairFromTupleBPConverter<T1, T2>::convertible,
+        &PairFromTupleBPConverter<T1, T2>::construct, type_id<std::pair<T1,T2> >());
+  }
+
+  // Determine if obj_ptr can be converted in a std::vector<T>
+  static void* convertible(PyObject* obj_ptr) {
+    if (!PyTuple_Check(obj_ptr) || PySequence_Length(obj_ptr)!=2) {
+      return 0;
+    }
+    return obj_ptr;
+  }
+
+  // Convert obj_ptr into a std::vector<T>
+  static void construct(
+      PyObject* obj_ptr,
+      boost::python::converter::rvalue_from_python_stage1_data* data) {
+
+    bp::tuple t = bp::tuple(bp::handle<>(bp::borrowed(obj_ptr)));
+
+    // Grab pointer to memory into which to construct the new std::vector<T>
+    void* storage = ((boost::python::converter::rvalue_from_python_storage<
+        std::pair<T1,T2> >*) data)->storage.bytes;
+
+    // in-place construct the new std::vector<T> using the character data
+    // extraced from the python object
+    std::pair<T1,T2>& v = *(new (storage) std::pair<T1,T2>());
+
+    v.first=bp::extract<T1>(t[0]);
+    v.second=bp::extract<T2>(t[1]);
+
+    // Stash the memory chunk pointer for later use by boost.python
+    data->convertible = storage;
+  }
+};
+
+template<class Obj, class HW_, class HR_>
+struct BoostPythonconverter {
+  typedef HW_ HW;
+  typedef HR_ HR;
+
+  static inline bp::object kaldi_to_python(const Obj& o) {
+      return bp::object(o);
+    }
+
+    static inline Obj * python_to_kaldi(bp::object o) {
+      return new Obj(bp::extract<Obj >(o));
+    }
+};
 
 template<class Converter>
 class PythonToKaldiHolder {
@@ -346,6 +426,46 @@ private:
   KALDI_DISALLOW_COPY_AND_ASSIGN(PythonToKaldiHolder);
   HR h_;
   T t_;  // t_ may alternatively be of type T*.
+};
+
+template<class T>
+struct VectorHolder {
+  typedef PythonToKaldiHolder<BoostPythonconverter<std::vector<T>,
+      kaldi::BasicVectorHolder<T>, kaldi::BasicVectorHolder<T> > > type;
+
+  static void register_converters() {
+    bp::to_python_converter<std::vector<kaldi::int32>, VectorToListBPConverter<kaldi::int32> >();
+    VectorFromListBPConverter<kaldi::int32>();
+  }
+};
+
+template<class T>
+struct VectorVectorHolder {
+  typedef PythonToKaldiHolder<BoostPythonconverter<std::vector<std::vector<T> > ,
+      kaldi::BasicVectorVectorHolder<T>, kaldi::BasicVectorVectorHolder<T> > > type;
+
+  static void register_converters() {
+    bp::to_python_converter<std::vector<std::vector<kaldi::int32> >, VectorToListBPConverter<std::vector<kaldi::int32> > >();
+    VectorFromListBPConverter<std::vector<kaldi::int32> >();
+  }
+};
+
+template<class T>
+struct PairVectorHolder {
+  typedef PythonToKaldiHolder<BoostPythonconverter<std::vector<std::pair<T,T> > ,
+      kaldi::BasicPairVectorHolder<T>, kaldi::BasicPairVectorHolder<T> > > type;
+
+  static void register_converters() {
+    //register the pair first
+    bp::to_python_converter<std::pair<kaldi::int32, kaldi::int32>,
+      PairToTupleBPConverter<kaldi::int32, kaldi::int32> >();
+    PairFromTupleBPConverter<kaldi::int32, kaldi::int32>();
+
+    //next register the pair vector
+    bp::to_python_converter<std::vector<std::pair<kaldi::int32, kaldi::int32> >,
+    VectorToListBPConverter<std::pair<kaldi::int32, kaldi::int32> > >();
+    VectorFromListBPConverter<std::pair<kaldi::int32, kaldi::int32> >();
+  }
 };
 
 template<class T>
@@ -483,7 +603,21 @@ BOOST_PYTHON_MODULE(kaldi_io_internal)
   WriterWrapper<kaldi::Int32Writer >("Int32Writer", bp::init<std::string>());
 
   // std::vector<int32>
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToListConverter<kaldi::int32> > > >("RandomAccessInt32VectorReader", bp::init<std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToListConverter<kaldi::int32> > > >("SequentialInt32VectorReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToListConverter<kaldi::int32> > > >("Int32VectorWriter", bp::init<std::string>());
+  VectorHolder<kaldi::int32>::register_converters();
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<VectorHolder<kaldi::int32>::type > >("RandomAccessInt32VectorReader", bp::init<std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<VectorHolder<kaldi::int32>::type > >("SequentialInt32VectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<VectorHolder<kaldi::int32>::type > >("Int32VectorWriter", bp::init<std::string>());
+
+  // std::vector<std::vector<int32> >
+  VectorVectorHolder<kaldi::int32>::register_converters();
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<VectorVectorHolder<kaldi::int32>::type > >("RandomAccessInt32VectorVectorReader", bp::init<std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<VectorVectorHolder<kaldi::int32>::type > >("SequentialInt32VectorVectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<VectorVectorHolder<kaldi::int32>::type > >("Int32VectorVectorWriter", bp::init<std::string>());
+
+  // std::vector<std::pair<int32, int32> >
+  PairVectorHolder<kaldi::int32>::register_converters();
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PairVectorHolder<kaldi::int32>::type > >("RandomAccessInt32PairVectorReader", bp::init<std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PairVectorHolder<kaldi::int32>::type > >("SequentialInt32PairVectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PairVectorHolder<kaldi::int32>::type > >("Int32PairVectorWriter", bp::init<std::string>());
+
 }
