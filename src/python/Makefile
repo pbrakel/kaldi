@@ -30,6 +30,6 @@ clean:
 	-rm -f *.o *.a *.so $(TESTFILES) $(BINFILES) $(TESTOUTPUTS) tmp* *.tmp
 
 depend:
-	-$(CXX) -M $(CXXFLAGS) *.cc > .depend.mk  
+	-$(CXX) -M $(CXXFLAGS) *.cpp > .depend.mk  
 
 all: $(PYLIBS)
