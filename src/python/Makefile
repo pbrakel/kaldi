@@ -29,4 +29,7 @@ PYLIBS = kaldi_io_internal.so
 clean:
 	-rm -f *.o *.a *.so $(TESTFILES) $(BINFILES) $(TESTOUTPUTS) tmp* *.tmp
 
+depend:
+	-$(CXX) -M $(CXXFLAGS) *.cc > .depend.mk  
+
 all: $(PYLIBS)
