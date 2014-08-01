@@ -12,6 +12,12 @@
 *.la
 *.a
 
+#eclipse stuff
+.settings
+.project
+.cproject
+.pydevproject
+
 # /tools/
 tools/ATLAS/
 tools/atlas3.8.3.tar.gz
@@ -118,6 +124,9 @@ tools/OpenBLAS
 /src/bin/est-pca
 /src/bin/matrix-sum-rows
 /src/bin/write-transition-labels
+/src/bin/sum-lda-accs
+/src/bin/sum-mllt-accs
+
 
 # /src/cudamatrix/
 /src/cudamatrix/.depend.mk
