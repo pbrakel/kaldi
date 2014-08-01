@@ -34,7 +34,7 @@ if [ ! -f "tools/mitlm-svn/bin/estimate-ngram" ]; then
   svn checkout -r103 http://mitlm.googlecode.com/svn/trunk/ tools/mitlm-svn
   cd tools/mitlm-svn/
   F77=gfortran ./autogen.sh
-  CXXFLAGS="-std=c++11" ./configure --prefix=`pwd`
+  CXXFLAGS="-std=c++0x" ./configure --prefix=`pwd`
   make
   make install
   cd ../..
