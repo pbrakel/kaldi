@@ -141,6 +141,11 @@ int get_np_type<float>() {
   return NPY_FLOAT;
 }
 
+template <>
+int get_np_type<kaldi::int32>() {
+  return NPY_INT32;
+}
+
 template<typename Real>
 class NpWrapperMatrix : public kaldi::MatrixBase<Real> {
  public:
@@ -323,6 +328,24 @@ struct VectorFromListBPConverter {
   }
 };
 
+
+template<typename T>
+struct VectorToNDArrayBPConverter {
+  static PyObject* convert(std::vector<T> const& vec) {
+    npy_intp dims[1];
+    dims[0] = vec.size();
+    int nd = 1;
+    int arr_type = get_np_type<T>();
+    PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
+    bp::object arr=bp::object(bp::handle<>(
+        ao
+        ));
+    std::copy(vec.begin(), vec.end(), (T*)PyArray_DATA(ao));
+    return bp::incref(arr.ptr());
+  }
+};
+
+
 template<typename T1, typename T2>
 struct PairToTupleBPConverter {
 
@@ -434,8 +457,19 @@ struct VectorHolder {
       kaldi::BasicVectorHolder<T>, kaldi::BasicVectorHolder<T> > > type;
 
   static void register_converters() {
-    bp::to_python_converter<std::vector<kaldi::int32>, VectorToListBPConverter<kaldi::int32> >();
-    VectorFromListBPConverter<kaldi::int32>();
+    bp::to_python_converter<std::vector<T>, VectorToListBPConverter<T> >();
+    VectorFromListBPConverter<T>();
+  }
+};
+
+template<class T>
+struct VectorNDArrayHolder {
+  typedef PythonToKaldiHolder<BoostPythonconverter<std::vector<T>,
+      kaldi::BasicVectorHolder<T>, kaldi::BasicVectorHolder<T> > > type;
+
+  static void register_converters() {
+    bp::to_python_converter<std::vector<T>, VectorToNDArrayBPConverter<T> >();
+    VectorFromListBPConverter<T>();
   }
 };
 
@@ -602,11 +636,18 @@ BOOST_PYTHON_MODULE(kaldi_io_internal)
   SequentialReaderWrapper<kaldi::SequentialInt32Reader >("SequentialInt32Reader",bp::init<std::string>());
   WriterWrapper<kaldi::Int32Writer >("Int32Writer", bp::init<std::string>());
 
-  // std::vector<int32>
-  VectorHolder<kaldi::int32>::register_converters();
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<VectorHolder<kaldi::int32>::type > >("RandomAccessInt32VectorReader", bp::init<std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<VectorHolder<kaldi::int32>::type > >("SequentialInt32VectorReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<VectorHolder<kaldi::int32>::type > >("Int32VectorWriter", bp::init<std::string>());
+  // std::vector<int32> as ndarray
+  VectorNDArrayHolder<kaldi::int32>::register_converters();
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<VectorNDArrayHolder<kaldi::int32>::type > >("RandomAccessInt32VectorReader", bp::init<std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<VectorNDArrayHolder<kaldi::int32>::type > >("SequentialInt32VectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<VectorNDArrayHolder<kaldi::int32>::type > >("Int32VectorWriter", bp::init<std::string>());
+
+//  Vector of simple types as lists
+//  VectorHolder<kaldi::int32>::register_converters();
+//  RandomAccessWrapper<kaldi::RandomAccessTableReader<VectorHolder<kaldi::int32>::type > >("RandomAccessInt32VectorReader", bp::init<std::string>());
+//  SequentialReaderWrapper<kaldi::SequentialTableReader<VectorHolder<kaldi::int32>::type > >("SequentialInt32VectorReader",bp::init<std::string>());
+//  WriterWrapper<kaldi::TableWriter<VectorHolder<kaldi::int32>::type > >("Int32VectorWriter", bp::init<std::string>());
+
 
   // std::vector<std::vector<int32> >
   VectorVectorHolder<kaldi::int32>::register_converters();
