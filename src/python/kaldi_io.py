@@ -29,3 +29,33 @@ if KALDI_BASE_FLOAT()==np.float32:
     RandomAccessBaseFloatVectorReaderMapped = RandomAccessFloatVectorReaderMapped
     SequentialBaseFloatVectorReader = SequentialFloatVectorReader
     BaseFloatVectorWriter = FloatVectorWriter
+
+class _Transformed(object):
+    def __init__(self, reader, transform_function, **kwargs):
+        super(_Transformed, self).__init__(**kwargs)
+        self.reader=reader
+        self.transform_function = transform_function
+    
+    def __getattr__(self, attr):
+        return getattr(self.reader,attr)
+    
+class TransRA(_Transformed):
+    def __init__(self, *args, **kwargs):
+        super(TransRA, self).__init__(*args, **kwargs)
+    
+    def value(self, key):
+        return self.transform_function(self.reader.value(key))
+    
+    def __getitem__(self, key):
+        return self.value(self,key)
+    
+class TransSeq(_Transformed):
+    def __init__(self, *args, **kwargs):
+        super(TransSeq, self).__init__(*args, **kwargs)
+        
+    def next(self):
+        return self.transform_function(self.reader.next())
+
+    def _kaldi_value(self):
+        return self.transform_function(self.reader._kaldi_value())
+    
