@@ -30,6 +30,22 @@ if KALDI_BASE_FLOAT()==np.float32:
     SequentialBaseFloatVectorReader = SequentialFloatVectorReader
     BaseFloatVectorWriter = FloatVectorWriter
 
+def get_io_for_dtype(access, dtype, element=''):
+    '''
+    Get a writer or reader for the given dtype. eg:
+    get_io_for_dtype('Sequential',np.float32,'MatrixReader')
+    get_io_for_dtype('float32,'MatrixWriter')
+    '''
+    if element=='': #assume we want a writer
+        access, dtype,element = '',access,dtype
+    dtypemap = {np.int32:'Int32',
+                np.float32:'Float',
+                np.float64:'Double',
+                'float32':'Float',
+                'float64':'Double'}
+    dtype = dtypemap[dtype]
+    return globals()[access + dtype + element] 
+
 class _Transformed(object):
     def __init__(self, reader, transform_function, **kwargs):
         super(_Transformed, self).__init__(**kwargs)
