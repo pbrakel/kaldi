@@ -63,7 +63,7 @@ class TransRA(_Transformed):
         return self.transform_function(self.reader.value(key))
     
     def __getitem__(self, key):
-        return self.value(self,key)
+        return self.value(key)
     
 class TransSeq(_Transformed):
     def __init__(self, *args, **kwargs):

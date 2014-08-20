@@ -515,7 +515,7 @@ void exit(T& t, const bp::object& type,
 
 template<class T>
 bp::object sequential_reader_next(T& reader) {
-  if (reader.Done()) {
+  if (!reader.IsOpen() || reader.Done()) {
     PyErr_SetString(PyExc_StopIteration, "No more data.");
     bp::throw_error_already_set();
   }
