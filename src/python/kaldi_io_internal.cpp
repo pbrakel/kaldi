@@ -610,26 +610,26 @@ BOOST_PYTHON_MODULE(kaldi_io_internal)
   WriterWrapper<kaldi::TableWriter<PyObjectHolder> >("PythonWriter", bp::init<std::string>());
 
   //Matrices as NdArrays
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("RandomAccessDoubleMatrixReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("RandomAccessDoubleMatrixMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("SequentialDoubleMatrixReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("DoubleMatrixWriter", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("RandomAccessFloat64MatrixReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("RandomAccessFloat64MatrixMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("SequentialFloat64MatrixReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<double> > > >("Float64MatrixWriter", bp::init<std::string>());
 
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("RandomAccessFloatMatrixReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("RandomAccessFloatMatrixMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("SequentialFloatMatrixReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("FloatMatrixWriter", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("RandomAccessFloat32MatrixReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("RandomAccessFloat32MatrixMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("SequentialFloat32MatrixReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<MatrixToNdArrayConverter<float> > > >("Float32MatrixWriter", bp::init<std::string>());
 
   //Vectors as NdArrays
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("RandomAccessDoubleVectorReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("RandomAccessDoubleVectorReaderMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("SequentialDoubleVectorReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("DoubleVectorWriter", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("RandomAccessFloat64VectorReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("RandomAccessFloat64VectorReaderMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("SequentialFloat64VectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<double> > > >("Float64VectorWriter", bp::init<std::string>());
 
-  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("RandomAccessFloatVectorReader", bp::init<std::string>());
-  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("RandomAccessFloatVectorReaderMapped",bp::init<std::string, std::string>());
-  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("SequentialFloatVectorReader",bp::init<std::string>());
-  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("FloatVectorWriter", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("RandomAccessFloat32VectorReader", bp::init<std::string>());
+  RandomAccessWrapper<kaldi::RandomAccessTableReaderMapped<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("RandomAccessFloat32VectorReaderMapped",bp::init<std::string, std::string>());
+  SequentialReaderWrapper<kaldi::SequentialTableReader<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("SequentialFloat32VectorReader",bp::init<std::string>());
+  WriterWrapper<kaldi::TableWriter<PythonToKaldiHolder<VectorToNdArrayConverter<float> > > >("Float32VectorWriter", bp::init<std::string>());
 
   //Integers
   RandomAccessWrapper<kaldi::RandomAccessInt32Reader >("RandomAccessInt32Reader", bp::init<std::string>());
