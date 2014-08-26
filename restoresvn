@@ -1,0 +1,3 @@
+git svn init https://svn.code.sf.net/p/kaldi/code/trunk
+git update-ref refs/remotes/git-svn refs/remotes/origin/master
+git svn rebase
