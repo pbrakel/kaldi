@@ -22,7 +22,6 @@ power=0.25 # exponent to determine number of gaussians from occurrence counts
 feat_dim=-1 # This option is now ignored but retained for compatibility.
 norm_vars=false # deprecated, prefer --cmvn-opts "--norm-vars=false"
 cmvn_opts=  # can be used to add extra options to cmvn.
-reorder=true #reorder arcs for faster decoding. Warnign: the transition-indexes stop to make sense
 # End configuration section.
 
 echo "$0 $@"  # Print the command line for logging
@@ -80,7 +79,7 @@ incgauss=$[($totgauss-$numgauss)/$max_iter_inc] # per-iter increment for #Gauss
 if [ $stage -le -2 ]; then
   echo "$0: Compiling training graphs"
   $cmd JOB=1:$nj $dir/log/compile_graphs.JOB.log \
-    compile-train-graphs --reorder=$reorder $dir/tree $dir/0.mdl  $lang/L.fst \
+    compile-train-graphs $dir/tree $dir/0.mdl  $lang/L.fst \
     "ark:sym2int.pl --map-oov $oov_sym -f 2- $lang/words.txt < $sdata/JOB/text|" \
     "ark:|gzip -c >$dir/fsts.JOB.gz" || exit 1;
 fi

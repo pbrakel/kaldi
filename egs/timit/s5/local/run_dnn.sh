@@ -24,8 +24,6 @@
 gmmdir=exp/tri3
 data_fmllr=data-fmllr-tri3
 stage=0 # resume training with --stage=N
-decode_nj=4
-train_nj=4
 # End of config.
 . utils/parse_options.sh || exit 1;
 #
@@ -34,17 +32,17 @@ if [ $stage -le 0 ]; then
   # Store fMLLR features, so we can train on them easily,
   # test
   dir=$data_fmllr/test
-  steps/nnet/make_fmllr_feats.sh --nj $train_nj --cmd "$train_cmd" \
+  steps/nnet/make_fmllr_feats.sh --nj 10 --cmd "$train_cmd" \
      --transform-dir $gmmdir/decode_test \
      $dir data/test $gmmdir $dir/log $dir/data || exit 1
   # dev
   dir=$data_fmllr/dev
-  steps/nnet/make_fmllr_feats.sh --nj $train_nj --cmd "$train_cmd" \
+  steps/nnet/make_fmllr_feats.sh --nj 10 --cmd "$train_cmd" \
      --transform-dir $gmmdir/decode_dev \
      $dir data/dev $gmmdir $dir/log $dir/data || exit 1
   # train
   dir=$data_fmllr/train
-  steps/nnet/make_fmllr_feats.sh --nj $train_nj --cmd "$train_cmd" \
+  steps/nnet/make_fmllr_feats.sh --nj 10 --cmd "$train_cmd" \
      --transform-dir ${gmmdir}_ali \
      $dir data/train $gmmdir $dir/log $dir/data || exit 1
   # split the data : 90% train 10% cross-validation (held-out)
@@ -71,9 +69,9 @@ if [ $stage -le 2 ]; then
     steps/nnet/train.sh --feature-transform $feature_transform --dbn $dbn --hid-layers 0 --learn-rate 0.008 \
     $data_fmllr/train_tr90 $data_fmllr/train_cv10 data/lang $ali $ali $dir || exit 1;
   # Decode (reuse HCLG graph)
-  steps/nnet/decode.sh --nj $decode_nj --cmd "$decode_cmd" --acwt 0.2 \
+  steps/nnet/decode.sh --nj 20 --cmd "$decode_cmd" --acwt 0.2 \
     $gmmdir/graph $data_fmllr/test $dir/decode_test || exit 1;
-  steps/nnet/decode.sh --nj $decode_nj --cmd "$decode_cmd" --acwt 0.2 \
+  steps/nnet/decode.sh --nj 20 --cmd "$decode_cmd" --acwt 0.2 \
     $gmmdir/graph $data_fmllr/dev $dir/decode_dev || exit 1;
 fi
 
@@ -86,9 +84,9 @@ acwt=0.2
 
 if [ $stage -le 3 ]; then
   # First we generate lattices and alignments:
-  steps/nnet/align.sh --nj $decode_nj --cmd "$train_cmd" \
+  steps/nnet/align.sh --nj 20 --cmd "$train_cmd" \
     $data_fmllr/train data/lang $srcdir ${srcdir}_ali || exit 1;
-  steps/nnet/make_denlats.sh --nj $decode_nj --cmd "$decode_cmd" --acwt $acwt \
+  steps/nnet/make_denlats.sh --nj 20 --cmd "$decode_cmd" --acwt $acwt \
     --lattice-beam 10.0 --beam 18.0 \
     $data_fmllr/train data/lang $srcdir ${srcdir}_denlats || exit 1;
 fi
@@ -100,10 +98,10 @@ if [ $stage -le 4 ]; then
     $data_fmllr/train data/lang $srcdir ${srcdir}_ali ${srcdir}_denlats $dir || exit 1
   # Decode
   for ITER in 1 6; do
-    steps/nnet/decode.sh --nj $decode_nj --cmd "$decode_cmd" \
+    steps/nnet/decode.sh --nj 20 --cmd "$decode_cmd" \
       --nnet $dir/${ITER}.nnet --acwt $acwt \
       $gmmdir/graph $data_fmllr/test $dir/decode_test_it${ITER} || exit 1
-    steps/nnet/decode.sh --nj $decode_nj --cmd "$decode_cmd" \
+    steps/nnet/decode.sh --nj 20 --cmd "$decode_cmd" \
       --nnet $dir/${ITER}.nnet --acwt $acwt \
       $gmmdir/graph $data_fmllr/dev $dir/decode_dev_it${ITER} || exit 1
   done 

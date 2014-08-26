@@ -28,15 +28,15 @@ numLeavesSGMM=7000
 numGaussSGMM=9000
 
 feats_nj=10
-train_nj=4
-decode_nj=4
+train_nj=30
+decode_nj=5
 
 echo ============================================================================
 echo "                Data & Lexicon & Language Preparation                     "
 echo ============================================================================
 
 #timit=/export/corpora5/LDC/LDC93S1/timit/TIMIT # @JHU
-timit=/Tmp/chorows/data/timit-raw/TIMIT
+timit=/mnt/matylda2/data/TIMIT/timit # @BUT
 
 local/timit_data_prep.sh $timit || exit 1
 
@@ -231,7 +231,7 @@ echo ===========================================================================
 echo "               DNN Hybrid Training & Decoding (Karel's recipe)            "
 echo ============================================================================
 
-local/run_dnn.sh --train-nj $train_nj --decode-nj $decode_nj
+local/run_dnn.sh
 
 echo ============================================================================
 echo "                    Getting Results [see RESULTS file]                    "

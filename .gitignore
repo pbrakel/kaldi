@@ -12,12 +12,6 @@
 *.la
 *.a
 
-#eclipse stuff
-.settings
-.project
-.cproject
-.pydevproject
-
 # /tools/
 tools/ATLAS/
 tools/atlas3.8.3.tar.gz
@@ -33,7 +27,6 @@ tools/sctk-2.4.0-20091110-0958.tar.bz2
 tools/sctk-2.4.0/
 tools/sph2pipe_v2.5.tar.gz
 tools/sph2pipe_v2.5/
-tools/OpenBLAS
 
 # /src/
 /src/kaldi.mk*
@@ -121,12 +114,6 @@ tools/OpenBLAS
 /src/bin/tree-info
 /src/bin/vector-scale
 /src/bin/vector-sum
-/src/bin/est-pca
-/src/bin/matrix-sum-rows
-/src/bin/write-transition-labels
-/src/bin/sum-lda-accs
-/src/bin/sum-mllt-accs
-/src/bin/transform-vec
 
 # /src/cudamatrix/
 /src/cudamatrix/.depend.mk
@@ -185,7 +172,6 @@ tools/OpenBLAS
 /src/featbin/select-feats
 /src/featbin/subsample-feats
 /src/featbin/wav-to-duration
-/src/featbin/wav-copy
 
 # /src/fgmmbin/
 /src/fgmmbin/.depend.mk
@@ -342,20 +328,11 @@ tools/OpenBLAS
 /src/gmmbin/gmm-global-init-from-feats
 /src/gmmbin/gmm-latgen-faster-parallel
 /src/gmmbin/gmm-latgen-tracking
-/src/gmmbin/gmm-acc-mllt-global
-/src/gmmbin/gmm-est-fmllr-global
-/src/gmmbin/gmm-global-est-lvtln-trans
-/src/gmmbin/gmm-global-gselect-to-post
-/src/gmmbin/gmm-latgen-faster-regtree-fmllr
-/src/gmmbin/gmm-transform-means-global
 
 # /src/hmm/
 /src/hmm/.depend.mk
 /src/hmm/hmm-topology-test
 /src/hmm/hmm-utils-test
-
-# /src/ivector/
-/src/ivector/.depend.mk
 
 # /src/ivectorbin/
 /src/ivectorbin/.depend.mk
@@ -376,11 +353,6 @@ tools/OpenBLAS
 /src/ivectorbin/ivector-subtract-global-mean
 /src/ivectorbin/ivector-transform
 /src/ivectorbin/select-voiced-frames
-/src/ivectorbin/create-split-from-vad
-/src/ivectorbin/logistic-regression-copy
-/src/ivectorbin/logistic-regression-eval
-/src/ivectorbin/logistic-regression-train
-/src/ivectorbin/ivector-adapt-plda
 
 # /src/kwsbin/
 /src/kwsbin/.depend.mk
@@ -444,7 +416,6 @@ tools/OpenBLAS
 /src/latbin/lattice-rescore-mapped
 /src/latbin/lattice-reverse
 /src/latbin/lattice-to-smbr-post
-/src/latbin/lattice-expand-ngram
 
 # /src/lm/
 /src/lm/.depend.mk
@@ -550,15 +521,6 @@ tools/OpenBLAS
 /src/nnet2bin/nnet-train-transitions
 /src/nnet2bin/raw-nnet-concat
 /src/nnet2bin/raw-nnet-info
-/src/nnet2bin/cuda-compiled
-/src/nnet2bin/nnet-adjust-priors
-/src/nnet2bin/nnet-am-switch-preconditioning
-/src/nnet2bin/nnet-replace-last-layers
-/src/nnet2bin/nnet-to-raw-nnet
-/src/nnet2bin/nnet-train-parallel-perturbed
-/src/nnet2bin/nnet-train-simple-perturbed
-/src/nnet2bin/nnet1-to-raw-nnet
-/src/nnet2bin/raw-nnet-copy
 
 # /src/sgmm/
 /src/sgmm/.depend.mk
@@ -632,9 +594,6 @@ tools/OpenBLAS
 /src/sgmm2bin/sgmm2-acc-stats-gpost
 /src/sgmm2bin/sgmm2-est-spkvecs-gpost
 /src/sgmm2bin/sgmm2-latgen-faster-parallel
-
-# /src/probe
-/src/probe/exp-test
 
 # /src/thread/
 /src/thread/.depend.mk
