@@ -15,15 +15,7 @@ all: check_required_programs sph2pipe atlas irstlm_tgt sclite openfst
 
 
 check_required_programs:
-	which aclocal
-	which automake
-	which autoconf
-	which libtoolize || which glibtoolize
-	which svn
-	which gcc
-	which $(CXX)
-	which patch
-	which tar
+	extras/check_dependencies.sh
 
 clean: openfst_cleaned sclite_cleaned  irstlm_cleaned
 
@@ -159,3 +151,15 @@ fortran_opt = $(shell gcc -v 2>&1 | perl -e '$$x = join(" ", <STDIN>); if($$x =~
 openblas_compiled:
 	-git clone git://github.com/xianyi/OpenBLAS
 	$(MAKE) PREFIX=`pwd`/OpenBLAS/install FC=gfortran $(fortran_opt) DEBUG=1 USE_THREAD=0 -C OpenBLAS all install
+
+beamformit: beamformit-3.51
+
+.PHONY: beamformit-3.51
+
+beamformit-3.51: beamformit-3.51.tgz
+	tar -xozf BeamformIt-3.51.tgz; \
+	cd BeamformIt-3.51; cmake . ; make
+
+beamformit-3.51.tgz:
+	wget -c -T 10 http://www.xavieranguera.com/beamformit/releases/BeamformIt-3.51.tgz
+

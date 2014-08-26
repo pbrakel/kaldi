@@ -20,8 +20,9 @@ BINFILES = align-equal align-equal-compiled acc-tree-stats \
         hmm-info pdf-to-counts analyze-counts extract-ctx post-to-phone-post \
         post-to-pdf-post duplicate-matrix logprob-to-post prob-to-post copy-post \
         matrix-logprob matrix-sum latgen-tracking-mapped \
-        write-transition-labels \
-        vector-sum matrix-sum-rows est-pca sum-lda-accs sum-mllt-accs
+        build-pfile-from-ali get-post-on-ali tree-info am-info \
+        vector-sum matrix-sum-rows est-pca sum-lda-accs sum-mllt-accs \
+        transform-vec
 
 
 OBJFILES =

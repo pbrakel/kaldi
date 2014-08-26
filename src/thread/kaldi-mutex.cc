@@ -20,7 +20,7 @@
 
 #include <pthread.h>
 #include <cerrno>
-
+#include <string.h>
 #include "base/kaldi-error.h"
 #include "thread/kaldi-mutex.h"
 
@@ -28,20 +28,34 @@ namespace kaldi {
   
 
 Mutex::Mutex() {
-  if (pthread_mutex_init(&mutex_, NULL) != 0)
-    KALDI_ERR << "Cannot initialize pthread mutex";
+  int ret;
+  if ((ret = pthread_mutex_init(&mutex_, NULL)) != 0)
+    KALDI_ERR << "Cannot initialize pthread mutex, error is: "
+              << strerror(ret);
 }
 
 
 Mutex::~Mutex() {
-  if (pthread_mutex_destroy(&mutex_) != 0) 
-    KALDI_ERR << "Cannot destroy pthread mutex";
+  int ret;
+  if ( (ret = pthread_mutex_destroy(&mutex_)) != 0) {
+    if (ret != 16) {
+      KALDI_ERR << "Cannot destroy pthread mutex, error is: "
+               << strerror(ret);
+    } else {
+      KALDI_WARN << "Error destroying pthread mutex; ignoring it as it could be "
+                << "a known issue that affects Haswell processors, see "
+                << "http://lists.opensuse.org/opensuse-bugs/2014-03/msg00137.html "
+                << "If your processor is not Haswell, this is a bug.";
+    }
+  }
 }
 
 
 void Mutex::Lock() {
-  if (pthread_mutex_lock(&mutex_) != 0)
-    KALDI_ERR << "Error on locking pthread mutex";
+  int ret;
+  if ((ret = pthread_mutex_lock(&mutex_)) != 0)
+    KALDI_ERR << "Error on locking pthread mutex, error is: "
+              << strerror(ret);
 }
 
  
@@ -51,15 +65,18 @@ bool Mutex::TryLock() {
   switch (ret) {
     case 0: lock_succeeded = true; break;
     case EBUSY: lock_succeeded = false; break;
-    default: KALDI_ERR << "Error on try-locking pthread mutex";
+    default: KALDI_ERR << "Error on try-locking pthread mutex, error is: "
+                       << strerror(ret);
   }
   return lock_succeeded;
 }
 
 
 void Mutex::Unlock() {
-  if (pthread_mutex_unlock(&mutex_) != 0)
-    KALDI_ERR << "Error on unlocking pthread mutex";
+  int ret;
+  if ((ret = pthread_mutex_unlock(&mutex_)) != 0)
+    KALDI_ERR << "Error on unlocking pthread mutex, error is: "
+              << strerror(ret);
 }
 
 
