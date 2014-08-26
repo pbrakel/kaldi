@@ -126,7 +126,7 @@ tools/OpenBLAS
 /src/bin/write-transition-labels
 /src/bin/sum-lda-accs
 /src/bin/sum-mllt-accs
-
+/src/bin/transform-vec
 
 # /src/cudamatrix/
 /src/cudamatrix/.depend.mk
@@ -380,6 +380,7 @@ tools/OpenBLAS
 /src/ivectorbin/logistic-regression-copy
 /src/ivectorbin/logistic-regression-eval
 /src/ivectorbin/logistic-regression-train
+/src/ivectorbin/ivector-adapt-plda
 
 # /src/kwsbin/
 /src/kwsbin/.depend.mk
@@ -443,6 +444,7 @@ tools/OpenBLAS
 /src/latbin/lattice-rescore-mapped
 /src/latbin/lattice-reverse
 /src/latbin/lattice-to-smbr-post
+/src/latbin/lattice-expand-ngram
 
 # /src/lm/
 /src/lm/.depend.mk
@@ -553,6 +555,10 @@ tools/OpenBLAS
 /src/nnet2bin/nnet-am-switch-preconditioning
 /src/nnet2bin/nnet-replace-last-layers
 /src/nnet2bin/nnet-to-raw-nnet
+/src/nnet2bin/nnet-train-parallel-perturbed
+/src/nnet2bin/nnet-train-simple-perturbed
+/src/nnet2bin/nnet1-to-raw-nnet
+/src/nnet2bin/raw-nnet-copy
 
 # /src/sgmm/
 /src/sgmm/.depend.mk
@@ -626,6 +632,9 @@ tools/OpenBLAS
 /src/sgmm2bin/sgmm2-acc-stats-gpost
 /src/sgmm2bin/sgmm2-est-spkvecs-gpost
 /src/sgmm2bin/sgmm2-latgen-faster-parallel
+
+# /src/probe
+/src/probe/exp-test
 
 # /src/thread/
 /src/thread/.depend.mk
