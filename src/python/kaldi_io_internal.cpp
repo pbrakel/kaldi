@@ -23,6 +23,10 @@ extern "C" {
 #include <matrix/kaldi-vector.h>
 #include <util/table-types.h>
 
+#include <python/python_wrappers.h>
+#include <python/bp_converters.h>
+
+
 using namespace std;
 
 namespace bp = boost::python;
@@ -66,6 +70,7 @@ class PyObjectHolder {
         Py_DECREF(repr);
       }
       return os.good();
+
     } catch (const std::exception &e) {
       KALDI_WARN<< "Exception caught writing Table object: " << e.what();
       if (!kaldi::IsKaldiError(e.what())) {std::cerr << e.what();}
@@ -123,210 +128,63 @@ private:
 
 PickleWrapper * PyObjectHolder::PW_ = 0;
 
-//Helper to get proper np type
-template <class Real>
-int get_np_type() {
-  //BOOST_STATIC_ASSERT_MSG(false, "Call one of the explicitly instantiated templates for float or double.");
-  KALDI_ERR << "Call one of the explicitly instantiated templates for float or double.";
-  return -1;
-}
-
-template <>
-int get_np_type<double>() {
-  return NPY_DOUBLE;
-}
-
-template <>
-int get_np_type<float>() {
-  return NPY_FLOAT;
-}
-
-template <>
-int get_np_type<kaldi::int32>() {
-  return NPY_INT32;
-}
-
-template<typename Real>
-class NpWrapperMatrix : public kaldi::MatrixBase<Real> {
- public:
-  NpWrapperMatrix(PyArrayObject* arr)
-      : kaldi::MatrixBase<Real>(),
-        arr_(arr) {
-    if (PyArray_NDIM(arr_)!=2) {
-      PyErr_SetString(PyExc_TypeError, "Can wrap only matrices (2D arrays)");
-      bp::throw_error_already_set();
-    }
-    if (PyArray_TYPE(arr)!=get_np_type<Real>()) {
-      PyErr_SetString(PyExc_TypeError, "Wrong array dtype");
-      bp::throw_error_already_set();
-    }
-    npy_intp* dims = PyArray_DIMS(arr_);
-    npy_intp* strides = PyArray_STRIDES(arr_);
-    if (strides[1]!=sizeof(Real)) {
-      PyErr_SetString(PyExc_TypeError, "Wrong array column stride");
-      bp::throw_error_already_set();
-    }
-    Py_INCREF(arr_);
-    //why do we have to use this-> in here??
-    this->data_ = (Real*)PyArray_DATA(arr);
-    this->num_rows_ = dims[0];
-    this->num_cols_ = dims[1];
-    this->stride_ = strides[0]/sizeof(Real);
-  }
-
-  ~NpWrapperMatrix() {
-    Py_DECREF(arr_);
-  }
-
- protected:
-  PyArrayObject* arr_;
-};
-
-template<typename Real>
-class NpWrapperVector : public kaldi::VectorBase<Real> {
- public:
-  NpWrapperVector(PyArrayObject* arr)
-      : kaldi::VectorBase<Real>(),
-        arr_(arr) {
-    if (PyArray_NDIM(arr_)!=1) {
-      PyErr_SetString(PyExc_TypeError, "Can wrap only vectors (1D arrays)");
-      bp::throw_error_already_set();
-    }
-    if (PyArray_TYPE(arr)!=get_np_type<Real>()) {
-      PyErr_SetString(PyExc_TypeError, "Wrong array dtype");
-            bp::throw_error_already_set();
-    }
-    npy_intp* dims = PyArray_DIMS(arr_);
-    npy_intp* strides = PyArray_STRIDES(arr_);
-    if (strides[0]!=sizeof(Real)) {
-      PyErr_SetString(PyExc_TypeError, "Wrong array column stride");
-      bp::throw_error_already_set();
-    }
-    Py_INCREF(arr_);
-    //why do we have to use this-> in here??
-    this->data_ = (Real*)PyArray_DATA(arr);
-    this->dim_ = dims[0];
-  }
-
-  ~NpWrapperVector() {
-    Py_DECREF(arr_);
-  }
-
- protected:
-  PyArrayObject* arr_;
-};
 
 template<class Real>
 struct MatrixToNdArrayConverter {
   typedef kaldi::KaldiObjectHolder<kaldi::Matrix<Real> > HR;
-  typedef kaldi::KaldiObjectHolder<NpWrapperMatrix<Real> > HW;
+  typedef kaldi::KaldiObjectHolder<kaldi::NpWrapperMatrix<Real> > HW;
 
   static inline bp::object kaldi_to_python(const kaldi::Matrix<Real>& mat) {
     npy_intp dims[2];
     dims[0] = mat.NumRows();
     dims[1] = mat.NumCols();
     int nd = 2;
-    int arr_type = get_np_type<Real>();
+    int arr_type = kaldi::get_np_type<Real>();
     PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
     bp::object arr=bp::object(bp::handle<>(
         ao
         ));
-    NpWrapperMatrix<Real> arr_wrap((PyArrayObject*)arr.ptr());
+    kaldi::NpWrapperMatrix<Real> arr_wrap((PyArrayObject*)arr.ptr());
     arr_wrap.CopyFromMat(mat);
     return arr;
   }
 
-  static inline NpWrapperMatrix<Real>* python_to_kaldi(bp::object o) {
-    PyObject* raw_arr = PyArray_FromAny(o.ptr(),PyArray_DescrFromType(get_np_type<Real>()), 2, 2, NPY_C_CONTIGUOUS | NPY_FORCECAST, NULL);
+  static inline kaldi::NpWrapperMatrix<Real>* python_to_kaldi(bp::object o) {
+    PyObject* raw_arr = PyArray_FromAny(o.ptr(),PyArray_DescrFromType(kaldi::get_np_type<Real>()), 2, 2, NPY_C_CONTIGUOUS | NPY_FORCECAST, NULL);
     //why does this fail: bp::object arr(bp::handle<>(raw_arr));
     bp::object arr=bp::object(bp::handle<>(raw_arr));
-    return new NpWrapperMatrix<Real>((PyArrayObject*)arr.ptr());
+    return new kaldi::NpWrapperMatrix<Real>((PyArrayObject*)arr.ptr());
   }
 };
 
 template<class Real>
 struct VectorToNdArrayConverter {
   typedef kaldi::KaldiObjectHolder<kaldi::Vector<Real> > HR;
-  typedef kaldi::KaldiObjectHolder<NpWrapperVector<Real> > HW;
+  typedef kaldi::KaldiObjectHolder<kaldi::NpWrapperVector<Real> > HW;
 
   static inline bp::object kaldi_to_python(const kaldi::Vector<Real>& vec) {
     npy_intp dims[1];
     dims[0] = vec.Dim();
     int nd = 1;
-    int arr_type = get_np_type<Real>();
+
+    int arr_type = kaldi::get_np_type<Real>();
     PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
     bp::object arr=bp::object(bp::handle<>(
         ao
         ));
-    NpWrapperVector<Real> vec_wrap((PyArrayObject*)arr.ptr());
+    kaldi::NpWrapperVector<Real> vec_wrap((PyArrayObject*)arr.ptr());
     vec_wrap.CopyFromVec(vec);
     return arr;
   }
 
-  static inline NpWrapperVector<Real>* python_to_kaldi(bp::object o) {
-    PyObject* raw_arr = PyArray_FromAny(o.ptr(),PyArray_DescrFromType(get_np_type<Real>()), 1, 1, NPY_C_CONTIGUOUS | NPY_FORCECAST, NULL);
+  static inline kaldi::NpWrapperVector<Real>* python_to_kaldi(bp::object o) {
+    PyObject* raw_arr = PyArray_FromAny(o.ptr(),PyArray_DescrFromType(kaldi::get_np_type<Real>()), 1, 1, NPY_C_CONTIGUOUS | NPY_FORCECAST, NULL);
     //why does this fail: bp::object arr(bp::handle<>(raw_arr));
     bp::object arr=bp::object(bp::handle<>(raw_arr));
-    return new NpWrapperVector<Real>((PyArrayObject*)arr.ptr());
+    return new kaldi::NpWrapperVector<Real>((PyArrayObject*)arr.ptr());
   }
 };
 
-//
-// Code transformend from http://code.activestate.com/lists/python-cplusplus-sig/16463/ and
-// http://misspent.wordpress.com/2009/09/27/how-to-write-boost-python-converters/
-//
-template<typename T>
-struct VectorToListBPConverter {
-
-  static PyObject* convert(std::vector<T> const& vec) {
-    bp::list l;
-    for (size_t i = 0; i < vec.size(); i++)
-      l.append(vec[i]);
-    return bp::incref(l.ptr());
-  }
-};
-
-template<typename T>
-struct VectorFromListBPConverter {
-  VectorFromListBPConverter() {
-    using namespace boost::python;
-    using namespace boost::python::converter;
-    bp::converter::registry::push_back(
-        &VectorFromListBPConverter<T>::convertible,
-        &VectorFromListBPConverter<T>::construct, type_id<std::vector<T> >());
-  }
-
-  // Determine if obj_ptr can be converted in a std::vector<T>
-  static void* convertible(PyObject* obj_ptr) {
-//    if (!PyIter_Check(obj_ptr)) {
-//      return 0;
-//    }
-    return obj_ptr;
-  }
-
-  // Convert obj_ptr into a std::vector<T>
-  static void construct(
-      PyObject* obj_ptr,
-      boost::python::converter::rvalue_from_python_stage1_data* data) {
-
-    bp::object o = bp::object(bp::handle<>(bp::borrowed(obj_ptr)));
-    bp::stl_input_iterator<T> begin(o);
-    bp::stl_input_iterator<T> end;
-
-    // Grab pointer to memory into which to construct the new std::vector<T>
-    void* storage = ((boost::python::converter::rvalue_from_python_storage<
-        std::vector<T> >*) data)->storage.bytes;
-
-    // in-place construct the new std::vector<T> using the character data
-    // extraced from the python object
-    std::vector<T>& v = *(new (storage) std::vector<T>());
-
-    v.insert(v.end(), begin, end);
-
-    // Stash the memory chunk pointer for later use by boost.python
-    data->convertible = storage;
-  }
-};
 
 
 template<typename T>
@@ -335,7 +193,7 @@ struct VectorToNDArrayBPConverter {
     npy_intp dims[1];
     dims[0] = vec.size();
     int nd = 1;
-    int arr_type = get_np_type<T>();
+    int arr_type = kaldi::get_np_type<T>();
     PyObject* ao = PyArray_SimpleNew(nd, dims, arr_type);
     bp::object arr=bp::object(bp::handle<>(
         ao
@@ -346,54 +204,6 @@ struct VectorToNDArrayBPConverter {
 };
 
 
-template<typename T1, typename T2>
-struct PairToTupleBPConverter {
-
-  static PyObject* convert(std::pair<T1,T2> const& p) {
-    return bp::incref(bp::make_tuple(p.first, p.second).ptr());
-  }
-};
-
-template<typename T1, typename T2>
-struct PairFromTupleBPConverter {
-  PairFromTupleBPConverter() {
-    using namespace boost::python;
-    using namespace boost::python::converter;
-    bp::converter::registry::push_back(
-        &PairFromTupleBPConverter<T1, T2>::convertible,
-        &PairFromTupleBPConverter<T1, T2>::construct, type_id<std::pair<T1,T2> >());
-  }
-
-  // Determine if obj_ptr can be converted in a std::vector<T>
-  static void* convertible(PyObject* obj_ptr) {
-    if (!PyTuple_Check(obj_ptr) || PySequence_Length(obj_ptr)!=2) {
-      return 0;
-    }
-    return obj_ptr;
-  }
-
-  // Convert obj_ptr into a std::vector<T>
-  static void construct(
-      PyObject* obj_ptr,
-      boost::python::converter::rvalue_from_python_stage1_data* data) {
-
-    bp::tuple t = bp::tuple(bp::handle<>(bp::borrowed(obj_ptr)));
-
-    // Grab pointer to memory into which to construct the new std::vector<T>
-    void* storage = ((boost::python::converter::rvalue_from_python_storage<
-        std::pair<T1,T2> >*) data)->storage.bytes;
-
-    // in-place construct the new std::vector<T> using the character data
-    // extraced from the python object
-    std::pair<T1,T2>& v = *(new (storage) std::pair<T1,T2>());
-
-    v.first=bp::extract<T1>(t[0]);
-    v.second=bp::extract<T2>(t[1]);
-
-    // Stash the memory chunk pointer for later use by boost.python
-    data->convertible = storage;
-  }
-};
 
 template<class Obj, class HW_, class HR_>
 struct BoostPythonconverter {
@@ -457,8 +267,8 @@ struct VectorHolder {
       kaldi::BasicVectorHolder<T>, kaldi::BasicVectorHolder<T> > > type;
 
   static void register_converters() {
-    bp::to_python_converter<std::vector<T>, VectorToListBPConverter<T> >();
-    VectorFromListBPConverter<T>();
+    bp::to_python_converter<std::vector<T>, kaldi::VectorToListBPConverter<T> >();
+    kaldi::VectorFromListBPConverter<T>();
   }
 };
 
@@ -469,7 +279,7 @@ struct VectorNDArrayHolder {
 
   static void register_converters() {
     bp::to_python_converter<std::vector<T>, VectorToNDArrayBPConverter<T> >();
-    VectorFromListBPConverter<T>();
+    kaldi::VectorFromListBPConverter<T>();
   }
 };
 
@@ -479,8 +289,8 @@ struct VectorVectorHolder {
       kaldi::BasicVectorVectorHolder<T>, kaldi::BasicVectorVectorHolder<T> > > type;
 
   static void register_converters() {
-    bp::to_python_converter<std::vector<std::vector<kaldi::int32> >, VectorToListBPConverter<std::vector<kaldi::int32> > >();
-    VectorFromListBPConverter<std::vector<kaldi::int32> >();
+    bp::to_python_converter<std::vector<std::vector<kaldi::int32> >, kaldi::VectorToListBPConverter<std::vector<kaldi::int32> > >();
+    kaldi::VectorFromListBPConverter<std::vector<kaldi::int32> >();
   }
 };
 
@@ -492,13 +302,13 @@ struct PairVectorHolder {
   static void register_converters() {
     //register the pair first
     bp::to_python_converter<std::pair<kaldi::int32, kaldi::int32>,
-      PairToTupleBPConverter<kaldi::int32, kaldi::int32> >();
-    PairFromTupleBPConverter<kaldi::int32, kaldi::int32>();
+      kaldi::PairToTupleBPConverter<kaldi::int32, kaldi::int32> >();
+    kaldi::PairFromTupleBPConverter<kaldi::int32, kaldi::int32>();
 
     //next register the pair vector
     bp::to_python_converter<std::vector<std::pair<kaldi::int32, kaldi::int32> >,
-    VectorToListBPConverter<std::pair<kaldi::int32, kaldi::int32> > >();
-    VectorFromListBPConverter<std::pair<kaldi::int32, kaldi::int32> >();
+    kaldi::VectorToListBPConverter<std::pair<kaldi::int32, kaldi::int32> > >();
+    kaldi::VectorFromListBPConverter<std::pair<kaldi::int32, kaldi::int32> >();
   }
 };
 
@@ -594,7 +404,7 @@ public:
 
 
 PyObject* KALDI_BASE_FLOAT() {
-  return (PyObject*)PyArray_DescrFromType(get_np_type<kaldi::BaseFloat>());
+  return (PyObject*)PyArray_DescrFromType(kaldi::get_np_type<kaldi::BaseFloat>());
 }
 
 BOOST_PYTHON_MODULE(kaldi_io_internal)
