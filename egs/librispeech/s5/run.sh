@@ -4,7 +4,7 @@
 # Set this to somewhere where you want to put your data, or where
 # someone else has already put it.  You'll want to change this 
 # if you're not on the CLSP grid.
-data=/export/a15/vpanayotov/data
+data=/data/lisatmp3/LibriSpeech
 
 # base url for downloads.
 data_url=www.openslr.org/resources/12
