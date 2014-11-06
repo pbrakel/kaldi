@@ -22,6 +22,18 @@ function register_extraid {
 }
 
 function setup_oov_search {
+  #Basic lexicon
+  #local phone_beam=-1
+  #local phone_nbest=-1
+  #local beam=5
+  #local nbest=500
+
+  #Extended lexicon
+  local nbest=-1
+  local beam=-1
+  local phone_nbest=300
+  local phone_beam=5
+
   local phone_cutoff=5
 
   local g2p_nbest=10
@@ -60,17 +72,13 @@ function setup_oov_search {
   #instead of search collection dependent
   if [ ! -f exp/conf_matrix/.done ] ; then
     local/generate_confusion_matrix.sh --cmd "$decode_cmd" --nj $my_nj  \
-      exp/sgmm5_denlats/dengraph  exp/sgmm5 exp/sgmm5_ali exp/sgmm5_denlats  exp/conf_matrix
+      exp/sgmm5/graph exp/sgmm5 exp/sgmm5_ali exp/sgmm5_denlats  exp/conf_matrix
     touch exp/conf_matrix/.done 
   fi
   confusion=exp/conf_matrix/confusions.txt
 
   if [ ! -f exp/g2p/.done ] ; then
-    if [ -f data/.extlex ]; then
-      local/train_g2p.sh  data/local/lexicon_orig.txt exp/g2p || return 1;
-    else
-      local/train_g2p.sh  data/local/lexicon.txt exp/g2p || return 1;
-    fi
+    local/train_g2p.sh  data/local exp/g2p
     touch exp/g2p/.done
   fi
   local/apply_g2p.sh --nj $my_nj --cmd "$decode_cmd" \
@@ -84,8 +92,8 @@ function setup_oov_search {
     --case-insensitive true \
     --confusion-matrix $confusion \
     --phone-cutoff $phone_cutoff \
-    --pron-probs true --beam $proxy_beam --nbest $proxy_nbest \
-    --phone-beam $proxy_phone_beam --phone-nbest $proxy_phone_nbest \
+    --pron-probs true --beam $beam --nbest $nbest \
+    --phone-beam $phone_beam --phone-nbest $phone_nbest \
     data/lang  $data_dir $L1_lex $L2_lex $kwsdatadir
 
 }

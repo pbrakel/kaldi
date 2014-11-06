@@ -23,12 +23,8 @@
 #ifndef KALDI_ONLINE_ONLINE_AUDIO_SOURCE_H_
 #define KALDI_ONLINE_ONLINE_AUDIO_SOURCE_H_
 
-#ifndef KALDI_NO_PORTAUDIO
-
 #include <portaudio.h>
 #include <pa_ringbuffer.h>
-
-#endif //KALDI_NO_PORTAUDIO
 
 #include "matrix/kaldi-vector.h"
 
@@ -59,7 +55,6 @@ class OnlineAudioSourceItf {
   virtual ~OnlineAudioSourceItf() { }
 };
 
-#ifndef KALDI_NO_PORTAUDIO
 
 // OnlineAudioSourceItf implementation using PortAudio to read samples in real-time
 // from a sound card/microphone.
@@ -131,7 +126,7 @@ int PaCallback(const void *input, void *output,
                const PaStreamCallbackTimeInfo *time_info,
                PaStreamCallbackFlags status_flags,
                void *user_data);
-#endif //KALDI_NO_PORTAUDIO
+
 
 // Simulates audio input, by returning data from a Vector.
 // This class is mostly meant to be used for online decoder testing using

@@ -121,9 +121,6 @@ void TestGenRandContextDependency() {
   }
 
   delete dep;
-
-  unlink("tmpf");
-  
   std::cout << "Note: any \"serious error\" warnings preceding this line are OK.\n";
 }
 

@@ -22,14 +22,12 @@
 // limitations under the License.
 
 #include <iostream>
-#if !defined(_MSC_VER)
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
-#endif
 
 #include "util/parse-options.h"
 #include "util/kaldi-table.h"
@@ -52,7 +50,7 @@ struct RecognizedWord {
 int main(int argc, char** argv) {
   using namespace kaldi;
   typedef kaldi::int32 int32;
-  #if !defined(_MSC_VER)
+
   try {
 
     const char *usage =
@@ -329,10 +327,8 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-#endif
   return 0;
 }
-
 
 namespace kaldi {
 
@@ -410,9 +406,7 @@ std::string TimeToTimecode(float time) {
   h = m / 60;
   m %= 60;
 
-#if !defined(_MSC_VER)
   snprintf(buf, 64, "%02d:%02d:%02d.%03d", h, m, s, ms);
-#endif
 
   return buf;
 }

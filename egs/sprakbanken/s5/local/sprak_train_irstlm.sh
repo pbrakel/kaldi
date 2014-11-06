@@ -158,7 +158,7 @@ cat $lmdir/extra${N}$lm_suffix | \
   utils/remove_oovs.pl $lmdir/oovs_${lm_suffix}.txt | \
   utils/eps2disambig.pl | utils/s2eps.pl | fstcompile --isymbols=$test/words.txt \
     --osymbols=$test/words.txt  --keep_isymbols=false --keep_osymbols=false | \
-   fstrmepsilon | fstarcsort --sort_type=ilabel > $test/G.fst
+   fstrmepsilon > $test/G.fst
 fstisstochastic $test/G.fst
 
 echo "Succeeded in formatting data."

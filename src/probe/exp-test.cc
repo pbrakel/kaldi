@@ -19,24 +19,24 @@
 
 #include <iostream>
 #include <cmath>
-#include "base/timer.h"
+#include "util/timer.h"
 
 #define SAMPLE 100000
 
 int main() { 
-  float dummy = 0.0;
+  float dummy;
   kaldi::Timer exp_timer;
   for(int i = 0; i < SAMPLE; ++i) {
-    dummy += exp((double)(i % 10));
+    dummy = exp(float(SAMPLE / 2) - i);
   }
   double exp_time = exp_timer.Elapsed();
 
   kaldi::Timer expf_timer;
   for(int i = 0; i < SAMPLE; ++i) {
-    dummy += expf((double)(i % 10));
+    dummy = expf(float(SAMPLE / 2) - i);
   }
   double expf_time = expf_timer.Elapsed();
-  
+
   // Often exp() and expf() perform very similarly, 
   // so we will replace expf() by exp() only if there is at least 10% difference 
   if (expf_time < exp_time * 1.1) { 

@@ -1,7 +1,6 @@
 // nnet2bin/nnet-subset-egs.cc
 
 // Copyright 2012  Johns Hopkins University (author:  Daniel Povey)
-// Copyright 2014  Vimal Manohar
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -21,7 +20,7 @@
 #include "base/kaldi-common.h"
 #include "util/common-utils.h"
 #include "hmm/transition-model.h"
-#include "nnet2/nnet-example-functions.h"
+#include "nnet2/nnet-randomize.h"
 
 int main(int argc, char *argv[]) {
   try {
@@ -60,7 +59,7 @@ int main(int argc, char *argv[]) {
     std::string examples_rspecifier = po.GetArg(1),
         examples_wspecifier = po.GetArg(2);
 
-    std::vector<std::pair<std::string, NnetExample> > egs;
+    std::vector<NnetExample> egs;
     
     SequentialNnetExampleReader example_reader(examples_rspecifier);
 
@@ -68,11 +67,11 @@ int main(int argc, char *argv[]) {
     for (; !example_reader.Done(); example_reader.Next()) {
       num_read++;
       if (num_read <= n)
-        egs.push_back(std::make_pair(example_reader.Key(), example_reader.Value()));
+        egs.push_back(example_reader.Value());
       else {
         BaseFloat keep_prob = n / static_cast<BaseFloat>(num_read);
         if (WithProb(keep_prob)) { // With probability "keep_prob"
-          egs[RandInt(0, n-1)] = std::make_pair(example_reader.Key(), example_reader.Value());
+          egs[RandInt(0, n-1)] = example_reader.Value();
         }
       }
     }
@@ -81,7 +80,9 @@ int main(int argc, char *argv[]) {
 
     NnetExampleWriter writer(examples_wspecifier);
     for (size_t i = 0; i < egs.size(); i++) {
-      writer.Write(egs[i].first, egs[i].second);
+      std::ostringstream key;
+      key << i;
+      writer.Write(key.str(), egs[i]);
     }
     
     KALDI_LOG << "Selected a subset of " << egs.size() << " out of " << num_read

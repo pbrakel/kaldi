@@ -19,8 +19,10 @@ realign_iters="1 2 3 4 5 6 7 8 9 10 12 14 16 18 20 23 26 29 32 35 38";
 config= # name of config file.
 stage=-4
 power=0.25 # exponent to determine number of gaussians from occurrence counts
+feat_dim=-1 # This option is now ignored but retained for compatibility.
 norm_vars=false # deprecated, prefer --cmvn-opts "--norm-vars=false"
 cmvn_opts=  # can be used to add extra options to cmvn.
+reorder=true #reorder arcs for faster decoding. Warnign: the transition-indexes stop to make sense
 # End configuration section.
 
 echo "$0 $@"  # Print the command line for logging
@@ -34,6 +36,8 @@ if [ $# != 3 ]; then
   echo "main options (for others, see top of script file)"
   echo "  --config <config-file>                           # config containing options"
   echo "  --nj <nj>                                        # number of parallel jobs"
+  echo "  --feat_dim <dim>                                 # This option is ignored now but"
+  echo "                                                   # retained for back-compatibility."
   echo "  --cmd (utils/run.pl|utils/queue.pl <queue opts>) # how to run jobs."
   exit 1;
 fi
@@ -76,7 +80,7 @@ incgauss=$[($totgauss-$numgauss)/$max_iter_inc] # per-iter increment for #Gauss
 if [ $stage -le -2 ]; then
   echo "$0: Compiling training graphs"
   $cmd JOB=1:$nj $dir/log/compile_graphs.JOB.log \
-    compile-train-graphs $dir/tree $dir/0.mdl  $lang/L.fst \
+    compile-train-graphs --reorder=$reorder $dir/tree $dir/0.mdl  $lang/L.fst \
     "ark:sym2int.pl --map-oov $oov_sym -f 2- $lang/words.txt < $sdata/JOB/text|" \
     "ark:|gzip -c >$dir/fsts.JOB.gz" || exit 1;
 fi

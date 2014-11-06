@@ -527,7 +527,7 @@ void PldaUnsupervisedAdaptor::AddStats(double weight,
 }
 
 void PldaUnsupervisedAdaptor::AddStats(double weight,
-                                       const Vector<float> &ivector) {
+                                       const Vector<BaseFloat> &ivector) {
   Vector<double> ivector_dbl(ivector);
   this->AddStats(weight, ivector_dbl);
 }

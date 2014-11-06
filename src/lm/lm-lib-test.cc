@@ -293,8 +293,6 @@ bool TestLmTableEvalScore(const string &inpfile,
 
   delete bestFst;
 
-  unlink("composed.fst");
-
   return success;
 }
 
@@ -336,8 +334,6 @@ int main(int argc, char *argv[]) {
                                            intext.str(),
                                            refscore.str());
   }
-
-  unlink("output.fst");
 
   exit(success ? 0 : 1);
 }

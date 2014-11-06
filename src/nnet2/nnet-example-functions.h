@@ -139,6 +139,7 @@ struct SplitExampleStats {
     case). */
 bool LatticeToDiscriminativeExample(
     const std::vector<int32> &alignment,
+    const Vector<BaseFloat> &spk_vec,
     const Matrix<BaseFloat> &feats,
     const CompactLattice &clat,
     BaseFloat weight,
@@ -179,8 +180,10 @@ void ExciseDiscriminativeExample(
    training code that doesn't support varying 'chunk' sizes within a minibatch.
 
    Will fail if all the input examples don't have the same weight (this will
-   normally be 1.0 anyway), or if the feature dimension (i.e. basic feature
-   dimension plus spk_info dimension) differs between the examples.
+   normally be 1.0 anyway).
+
+   Will crash if the spk_info variables are non-empty (don't call it in that
+   case).
 */
 void AppendDiscriminativeExamples(
     const std::vector<const DiscriminativeNnetExample*> &input,
@@ -202,10 +205,11 @@ void AppendDiscriminativeExamples(
    Will fail if all the input examples don't have the same weight (this will
    normally be 1.0 anyway).
 
-   If the spk_info variables are non-empty, it will move them into the features
-   of the output, so the spk_info of the output will be empty but the
-   appropriate speaker vectors will be appended to each row of the features.  */
-
+   If the spk_info variables are non-empty, it won't attempt to combine the
+   examples, it will just copy them to the output.  If we later need to
+   extend it to work with spk_info data (e.g. combining examples from the
+   same speaker), we can do that.
+*/
 void CombineDiscriminativeExamples(
     int32 max_length,
     const std::vector<DiscriminativeNnetExample> &input,

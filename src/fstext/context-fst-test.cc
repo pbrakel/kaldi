@@ -267,8 +267,6 @@ template<class Arc> static void TestContextFst(bool verbose, bool use_matcher) {
     delete f;
   }
   if (test_vec) { delete cfst_vec; }
-
-  unlink("tmpf");
 }
 
 

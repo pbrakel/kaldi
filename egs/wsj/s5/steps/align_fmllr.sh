@@ -69,8 +69,7 @@ echo "$0: feature type is $feat_type"
 case $feat_type in
   delta) sifeats="ark,s,cs:apply-cmvn $cmvn_opts --utt2spk=ark:$sdata/JOB/utt2spk scp:$sdata/JOB/cmvn.scp scp:$sdata/JOB/feats.scp ark:- | add-deltas ark:- ark:- |";;
   lda) sifeats="ark,s,cs:apply-cmvn $cmvn_opts --utt2spk=ark:$sdata/JOB/utt2spk scp:$sdata/JOB/cmvn.scp scp:$sdata/JOB/feats.scp ark:- | splice-feats $splice_opts ark:- ark:- | transform-feats $srcdir/final.mat ark:- ark:- |"
-    cp $srcdir/final.mat $dir
-    cp $srcdir/full.mat $dir 2>/dev/null
+    cp $srcdir/final.mat $srcdir/full.mat $dir    
    ;;
   *) echo "Invalid feature type $feat_type" && exit 1;
 esac

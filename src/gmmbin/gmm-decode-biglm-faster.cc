@@ -25,7 +25,7 @@
 #include "fstext/fstext-lib.h"
 #include "decoder/biglm-faster-decoder.h"
 #include "gmm/decodable-am-diag-gmm.h"
-#include "base/timer.h"
+#include "util/timer.h"
 
 namespace kaldi {
 

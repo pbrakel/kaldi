@@ -35,6 +35,7 @@ param_stddev=0.1 #init parameters in other RBMs
 input_vis_type=gauss # type of visible nodes on DBN input
 # number of iterations
 rbm_iter=1            #number of pre-training epochs (Gaussian-Bernoulli RBM has 2x more)
+rbm_drop_data=0.0     #sample the training set, 1.0 drops all the data, 0.0 keeps all
 # pre-training opts
 rbm_lrate=0.4         #RBM learning rate
 rbm_lrate_low=0.01    #lower RBM learning rate (for Gaussian units)
@@ -42,7 +43,6 @@ rbm_l2penalty=0.0002  #L2 penalty (increases RBM-mixing rate)
 rbm_extra_opts=
 # data processing config
 copy_feats=true    # resave the features randomized consecutively to tmpdir
- copy_feats_tmproot= # tmproot for copy-feats (optional)
 # feature config
 feature_transform= # Optionally reuse feature processing front-end (override splice,etc.)
 feature_transform_proto= # Optionally pass prototype of feature transform
@@ -111,9 +111,10 @@ wc -l $dir/train.scp
 
 # re-save the shuffled features, so they are stored sequentially on the disk in /tmp/
 if [ "$copy_feats" == "true" ]; then
-  tmpdir=$(mktemp -d $copy_feats_tmproot); mv $dir/train.scp{,_non_local}
-  copy-feats scp:$dir/train.scp_non_local ark,scp:$tmpdir/train.ark,$dir/train.scp || exit 1
-  trap "echo \"Removing features tmpdir $tmpdir @ $(hostname)\"; ls $tmpdir; rm -r $tmpdir" EXIT
+  tmpdir=$(mktemp -d kaldi.XXXX); mv $dir/train.scp $dir/train.scp_non_local
+  utils/nnet/copy_feats.sh $dir/train.scp_non_local $tmpdir $dir/train.scp
+  # remove data on exit...
+  trap "echo \"Removing features tmpdir $tmpdir @ $(hostname)\"; rm -r $tmpdir" EXIT
 fi
 
 # create a 10k utt subset for global cmvn estimates
@@ -223,7 +224,7 @@ for depth in $(seq 1 $nn_depth); do
     [ $input_vis_type == "bern" ] && rbm_lrate_low=$rbm_lrate # original lrate for Bernoulli input
     echo "Pretraining '$RBM' (input $input_vis_type, lrate $rbm_lrate_low, iters $num_iter)"
     rbm-train-cd1-frmshuff --learn-rate=$rbm_lrate_low --l2-penalty=$rbm_l2penalty \
-      --num-iters=$num_iter --verbose=$verbose \
+      --num-iters=$num_iter --drop-data=$rbm_drop_data --verbose=$verbose \
       --feature-transform=$feature_transform \
       $rbm_extra_opts \
       $RBM.init "$feats" $RBM 2>$dir/log/rbm.$depth.log || exit 1
@@ -251,7 +252,7 @@ for depth in $(seq 1 $nn_depth); do
     #pre-train
     echo "Pretraining '$RBM' (lrate $rbm_lrate, iters $rbm_iter)"
     rbm-train-cd1-frmshuff --learn-rate=$rbm_lrate --l2-penalty=$rbm_l2penalty \
-      --num-iters=$rbm_iter --verbose=$verbose \
+      --num-iters=$rbm_iter --drop-data=$rbm_drop_data --verbose=$verbose \
       --feature-transform="nnet-concat $feature_transform $dir/$((depth-1)).dbn - |" \
       $rbm_extra_opts \
       $RBM.init "$feats" $RBM 2>$dir/log/rbm.$depth.log || exit 1

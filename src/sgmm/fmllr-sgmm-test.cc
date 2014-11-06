@@ -132,9 +132,6 @@ void TestSgmmFmllrAccsIO(const AmSgmm &sgmm,
   kaldi::AssertEqual(loglike1, loglike3, 1e-4);
   delete accs2;
   KALDI_LOG << "Test IO end.";
-
-  unlink("tmpf");
-  unlink("tmpfb");
 }
 
 void TestSgmmFmllrSubspace(const AmSgmm &sgmm,

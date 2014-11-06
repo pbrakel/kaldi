@@ -1,7 +1,6 @@
 // util/hash-list.h
 
-// Copyright 2009-2011   Microsoft Corporation
-//                2013   Johns Hopkins University (author: Daniel Povey)
+// Copyright 2009-2011     Microsoft Corporation
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -65,10 +64,8 @@ template<class I, class T> class HashList {
   Elem *Clear();
 
   /// Gives the head of the current list to the user.  Ownership retained in the
-  /// class.  Caution: in December 2013 the return type was changed to const Elem*
-  /// and this function was made const.  You may need to change some types of
-  /// local Elem* variables to const if this produces compilation errors.
-  const Elem *GetList() const;
+  /// class.
+  Elem *GetList();
 
   /// Think of this like delete().  It is to be called for each Elem in turn
   /// after you "obtained ownership" by doing Clear().  This is not the opposite of

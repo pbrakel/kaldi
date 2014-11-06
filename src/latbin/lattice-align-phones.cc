@@ -35,7 +35,8 @@ int main(int argc, char *argv[]) {
         "phones.  The output symbols are still words, unless you specify --replace-output-symbols=true\n"
         "Usage: lattice-align-phones [options] <model> <lattice-rspecifier> <lattice-wspecifier>\n"
         " e.g.: lattice-align-phones final.mdl ark:1.lats ark:phone_aligned.lats\n"
-        "See also: lattice-to-phone-lattice, lattice-align-words, lattice-align-words-lexicon\n";
+        "Note: word-boundary file has format (on each line):\n"
+        "<integer-phone-id> [begin|end|singleton|internal|nonword]\n";
     
     ParseOptions po(usage);
     bool output_if_error = true;

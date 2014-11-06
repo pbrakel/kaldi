@@ -292,8 +292,7 @@ void UnitTestDiagGmm() {
     AssertEqual(loglike1, loglike2, 0.01);
   }
 
-  unlink("tmpf");
-  unlink("tmpfb");
+
 }
 
 }  // end namespace kaldi

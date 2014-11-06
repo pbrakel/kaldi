@@ -41,7 +41,7 @@ fi
 
 for f in $flist; do
   if [ -L $f ]; then
-    rm $(dirname $f)/$(readlink $f)  # this will print a warning if it fails.
+    rm $(readlink $f)  # this will print a warning if it fails.
   fi
   rm $f
 done

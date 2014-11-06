@@ -18,8 +18,7 @@ if [ -f path.sh ]; then . ./path.sh; fi
 . parse_options.sh || exit 1;
 
 if [ $# != 3 ]; then
-   echo "Usage: $0 [options] <data-dir> <log-dir> <path-to-plpdir>";
-   echo "e.g.: $0 data/train exp/make_plp/train plp"
+   echo "usage: make_plp.sh [options] <data-dir> <log-dir> <path-to-plpdir>";
    echo "options: "
    echo "  --plp-config <config-file>                      # config passed to compute-plp-feats "
    echo "  --nj <nj>                                        # number of parallel jobs"

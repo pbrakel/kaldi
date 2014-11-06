@@ -3,7 +3,7 @@
 #include <cublas.h>
 #endif
 
-#include "base/timer.h"
+#include "util/timer.h"
 #include "cudamatrix/cu-common.h"
 #include "cudamatrix/cu-vector.h"
 #include "cudamatrix/cu-device.h"

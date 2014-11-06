@@ -861,8 +861,6 @@ void TestBuildTreeStatsIo(bool binary) {
       KALDI_ASSERT(stats == stats2);
     }
   }
-
-  unlink("tmpf");
 }
 
 

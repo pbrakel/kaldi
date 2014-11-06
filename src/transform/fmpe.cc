@@ -45,9 +45,8 @@ void Fmpe::SetContexts(std::string context_str) {
                    "Mal-formed context string: bad --context-expansion option?");
       int32 pos;
       BaseFloat weight;
-      bool ok = ConvertStringToInteger(one_pair[0], &pos);
-      ok = ConvertStringToReal(one_pair[1], &weight) && ok;
-      if (!ok)
+      if (!ConvertStringToInteger(one_pair[0], &pos)
+          || !ConvertStringToReal(one_pair[1], &weight))
         KALDI_ERR << "Mal-formed context string: bad --context-expansion option?";
       contexts_[i].push_back(std::make_pair(pos, weight));
     }

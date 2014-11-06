@@ -211,8 +211,6 @@ void UnitTestEstimateMmieDiagGmm() {
     iteration++;
   }
   delete gmm;
-  
-  unlink("tmpfeats");
 }
 
 }  // end namespace kaldi

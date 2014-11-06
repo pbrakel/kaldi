@@ -53,11 +53,7 @@ struct PldaConfig {
   void Register(OptionsItf *po) {
     po->Register("normalize-length", &normalize_length,
                  "If true, do length normalization as part of PLDA (see code for "
-                 "details).  This does not set the length unit; instead, it "
-                 "ensures that the inner product with the PLDA model's inverse "
-                 "variance (which is a function of how many utterances the "
-                 "iVector was averaged over) has the expected value, equal to "
-                 "the iVector dimension.");
+                 "details)");
   }
 };
 
@@ -298,7 +294,7 @@ class PldaUnsupervisedAdaptor {
   PldaUnsupervisedAdaptor(): tot_weight_(0.0) { }
   // Add stats to this class.  Normally the weight will be 1.0.
   void AddStats(double weight, const Vector<double> &ivector);
-  void AddStats(double weight, const Vector<float> &ivector);
+  void AddStats(double weight, const Vector<BaseFloat> &ivector);
   
 
   void UpdatePlda(const PldaUnsupervisedAdaptorConfig &config,

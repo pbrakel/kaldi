@@ -281,8 +281,6 @@ void UnitTestRegtreeFmllrDiagGmm(cova_type feature_type, size_t max_bclass) {
     iteration++;
     delete new_fmllr;
     delete fmllr_read;
-    
-    unlink("tmpf");
   }
 
 //  // transform features with empty transform

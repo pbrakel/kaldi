@@ -33,7 +33,7 @@
 #include "nnet/nnet-activation.h"
 #include "nnet/nnet-nnet.h"
 #include "nnet/nnet-pdf-prior.h"
-#include "base/timer.h"
+#include "util/timer.h"
 #include "cudamatrix/cu-device.h"
 
 
@@ -170,8 +170,7 @@ int main(int argc, char *argv[]) {
     Nnet nnet;
     nnet.Read(model_filename);
     // using activations directly: remove softmax, if present
-    if (nnet.GetComponent(nnet.NumComponents()-1).GetType() ==
-        kaldi::nnet1::Component::kSoftmax) {
+    if (nnet.GetComponent(nnet.NumComponents()-1).GetType() == Component::kSoftmax) {
       KALDI_LOG << "Removing softmax from the nnet " << model_filename;
       nnet.RemoveComponent(nnet.NumComponents()-1);
     } else {
@@ -228,10 +227,10 @@ int main(int argc, char *argv[]) {
         continue;
       }
       if (mat.NumRows() > max_frames) {
-    KALDI_WARN << "Utterance " << utt << ": Skipped because it has " << mat.NumRows() << 
-      " frames, which is more than " << max_frames << ".";
-    num_other_error++;
-    continue;
+	KALDI_WARN << "Utterance " << utt << ": Skipped because it has " << mat.NumRows() << 
+	  " frames, which is more than " << max_frames << ".";
+	num_other_error++;
+	continue;
       }
       // 2) get the denominator lattice, preprocess
       Lattice den_lat = den_lat_reader.Value(utt);
@@ -310,7 +309,7 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      KALDI_VLOG(1) << "Lattice #" << num_done + 1 << " processed"
+      KALDI_VLOG(1) << "Processed lattice for utterance " << num_done + 1
                     << " (" << utt << "): found " << den_lat.NumStates()
                     << " states and " << fst::NumArcs(den_lat) << " arcs.";
 

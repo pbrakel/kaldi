@@ -1,7 +1,7 @@
 #!/bin/bash
 
-. conf/common_vars.sh
 . ./lang.conf
+. conf/common_vars.sh
 
 train_stage=-10
 dir=exp/tri6b_nnet

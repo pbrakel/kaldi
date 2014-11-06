@@ -5,7 +5,9 @@
 # (make sure your --num-jobs options are no more than
 # the number of cpus on your machine.
 
-export train_cmd="queue.pl -l 'arch=*64*'"
-export decode_cmd="queue.pl -l 'arch=*64*'"
-export cuda_cmd="queue.pl -l gpu=1"
+export train_cmd="queue.pl"
+export decode_cmd="queue.pl"
+#export train_cmd=run.pl
+#export decode_cmd=run.pl
+
 

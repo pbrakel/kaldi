@@ -235,7 +235,6 @@ class LmExampleDeterministicOnDemandFst: public DeterministicOnDemandFst<Arc> {
                                     Label bos_symbol,
                                     Label eos_symbol);
   
-
   virtual StateId Start() { return start_state_; }
 
   /// We don't bother caching the final-probs, just the arcs.

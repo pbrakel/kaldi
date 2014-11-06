@@ -274,15 +274,6 @@ template<class I> I  Gcd(I m, I n) {
   }
 }
 
-/// Returns the least common multiple of two integers.  Will
-/// crash unless the inputs are positive.
-template<class I> I  Lcm(I m, I n) {
-  KALDI_ASSERT(m > 0 && n > 0);
-  I gcd = Gcd(m, n);
-  return gcd * (m/gcd) * (n/gcd);
-}
-
-
 template<class I> void Factorize(I m, std::vector<I> *factors) {
   // Splits a number into its prime factors, in sorted order from
   // least to greatest,  with duplication.  A very inefficient
@@ -316,27 +307,9 @@ inline double Hypot(double x, double y) {  return hypot(x, y); }
 
 inline float Hypot(float x, float y) {  return hypotf(x, y); }
 
-#if !defined(_MSC_VER) || (_MSC_VER >= 1800)
 inline double Log1p(double x) {  return log1p(x); }
 
 inline float Log1p(float x) {  return log1pf(x); }
-#else
-inline double Log1p(double x) {
-    const double cutoff = 1.0e-08;
-    if (x < cutoff)
-        return x - 2 * x * x;
-    else 
-        return log(1.0 + x);
-}
-
-inline float Log1p(float x) {
-    const float cutoff = 1.0e-07;
-    if (x < cutoff)
-        return x - 2 * x * x;
-    else 
-        return log(1.0 + x);
-}
-#endif
 
 inline double Exp(double x) { return exp(x); }
 

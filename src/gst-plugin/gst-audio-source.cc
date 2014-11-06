@@ -101,13 +101,8 @@ bool GstBufferSource::Read(Vector<BaseFloat> *data) {
     }
   }
 
-  uint32 nsamples_received = nbytes_transferred / sizeof(SampleType);
-  for (int i = 0; i < nsamples_received ; ++i) {
+  for (int i = 0; i < nbytes_transferred / sizeof(SampleType) ; ++i) {
     (*data)(i) = static_cast<BaseFloat>(buf[i]);
-  }
-
-  if (nsamples_received < nsamples_req) {
-    data->Resize(nsamples_received, kCopyData);
   }
   return !((g_async_queue_length(buf_queue_) < sizeof(SampleType))
       && ended_

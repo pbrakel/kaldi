@@ -104,7 +104,6 @@ void TestMutex() {
 int main() {
   using namespace kaldi;
   TestThreads();
-  for (int i = 0; i < 20; i++)
-    TestMutex();
+  TestMutex();
 }
 

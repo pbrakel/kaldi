@@ -29,8 +29,7 @@
 
 
 int main(int argc, char *argv[]) {
-#ifndef KALDI_NO_PORTAUDIO
-    try {
+  try {
     using namespace kaldi;
     using namespace fst;
 
@@ -159,7 +158,6 @@ int main(int argc, char *argv[]) {
     OnlineDecodableDiagGmmScaled decodable(am_gmm, trans_model, acoustic_scale,
                                            &feature_matrix);
     bool partial_res = false;
-    decoder.InitDecoding();
     while (1) {
       OnlineFasterDecoder::DecodeState dstate = decoder.Decode(&decodable);
       if (dstate & (decoder.kEndFeats | decoder.kEndUtt)) {
@@ -199,5 +197,4 @@ int main(int argc, char *argv[]) {
     std::cerr << e.what();
     return -1;
   }
-#endif
 } // main()

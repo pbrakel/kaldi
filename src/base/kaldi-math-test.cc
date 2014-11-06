@@ -1,5 +1,4 @@
 // base/kaldi-math-test.cc
-// 
 // Copyright 2009-2011  Microsoft Corporation;  Yanmin Qian;  Jan Silovsky
 
 // See ../../COPYING for clarification regarding multiple authors
@@ -17,11 +16,10 @@
 // See the Apache 2 License for the specific language governing permissions and
 // limitations under the License.
 #include "base/kaldi-math.h"
-#include "base/timer.h"
 
 namespace kaldi {
 
-template<class I> void UnitTestGcdLcmTpl() {
+template<class I> void UnitTestGcdTpl() {
   for (I a = 1; a < 15; a++) {  // a is min gcd.
     I b = (I)(Rand() % 10);
     I c = (I)(Rand() % 10);
@@ -32,12 +30,6 @@ template<class I> void UnitTestGcdLcmTpl() {
     KALDI_ASSERT(g >= a);
     KALDI_ASSERT((b*a) % g == 0);
     KALDI_ASSERT((c*a) % g == 0);
-
-    // test least common multiple
-    if (b <= 0 || c <= 0) continue; // lcm not defined unless both positive.
-    I h = Lcm(b*a, c*a);
-    KALDI_ASSERT(h != 0 && (h % (b*a)) == 0 &&
-                 (h % (c*a)) == 0);
   }
 }
 
@@ -54,10 +46,11 @@ void UnitTestRoundUpToNearestPowerOfTwo() {
   KALDI_ASSERT(RoundUpToNearestPowerOfTwo(1073700000) == 1073741824  );
 }
 
-void UnitTestGcdLcm() {
-  UnitTestGcdLcmTpl<int>();
-  UnitTestGcdLcmTpl<size_t>();
-  UnitTestGcdLcmTpl<unsigned short>();
+void UnitTestGcd() {
+  UnitTestGcdTpl<int>();
+  UnitTestGcdTpl<char>();
+  UnitTestGcdTpl<size_t>();
+  UnitTestGcdTpl<unsigned short>();
 }
 
 void UnitTestRand() {
@@ -255,48 +248,8 @@ void UnitTestApproxEqual() {
   KALDI_ASSERT(!ApproxEqual(-std::numeric_limits<float>::infinity(),
                             0));
   KALDI_ASSERT(!ApproxEqual(-std::numeric_limits<float>::infinity(),
-                            1));               
-}
-
-template<class Real>
-void UnitTestExpSpeed() {
-  Real sum = 0.0;  // compute the sum to avoid optimizing it away.
-  Real time = 0.01;  // how long this should last.
-  int block_size = 10;
-  int num_ops = 0;
-  Timer tim;
-  while (tim.Elapsed() < time) {
-    for (int i = 0; i < block_size; i++) {
-      sum += Exp((Real)i);
-    }
-    num_ops += block_size;
-  }
-  KALDI_ASSERT(sum > 0.0);  // make it harder for the compiler to optimize Exp
-                            // away, as we have a conditional.
-  Real flops = 1.0e-06 * num_ops / tim.Elapsed();
-  KALDI_LOG << "Megaflops doing Exp(" << (sizeof(Real) == 4 ? "float" : "double")
-            << ") is " << flops;
-}
-
-
-template<class Real>
-void UnitTestLogSpeed() {
-  Real sum = 0.0;  // compute the sum to avoid optimizing it away.
-  Real time = 0.01;  // how long this should last.
-  int block_size = 10;
-  int num_ops = 0;
-  Timer tim;
-  while (tim.Elapsed() < time) {
-    for (int i = 0; i < block_size; i++) {
-      sum += Log((float)(i + 1));
-    }
-    num_ops += block_size;
-  }
-  KALDI_ASSERT(sum > 0.0);  // make it harder for the compiler to optimize Log
-                            // away, as we have a conditional.
-  Real flops = 1.0e-06 * num_ops / tim.Elapsed();
-  KALDI_LOG << "Megaflops doing Log(" << (sizeof(Real) == 4 ? "float" : "double")
-            << ") is " << flops;
+                            1));
+               
 }
 
 }  // end namespace kaldi.
@@ -304,16 +257,12 @@ void UnitTestLogSpeed() {
 int main() {
   using namespace kaldi;
   UnitTestApproxEqual();
-  UnitTestGcdLcm();
+  UnitTestGcd();
   UnitTestFactorize();
   UnitTestDefines();
   UnitTestLogAddSub();
   UnitTestRand();
   UnitTestAssertFunc();
   UnitTestRoundUpToNearestPowerOfTwo();
-  UnitTestExpSpeed<float>();
-  UnitTestExpSpeed<double>();
-  UnitTestLogSpeed<float>();
-  UnitTestLogSpeed<double>();
 }
 

@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     typedef kaldi::int32 int32;
 
     const char *usage =
-        "Convert cmvn-stats into <AddShift> and <Rescale> components.\n"
+        "Convert transformation matrix to <biasedlinearity>\n"
         "Usage:  cmvn-to-nnet [options] <transf-in> <nnet-out>\n"
         "e.g.:\n"
         " cmvn-to-nnet --binary=false transf.mat nnet.mdl\n";
@@ -38,13 +38,11 @@ int main(int argc, char *argv[]) {
     bool binary_write = false;
     bool tied_normalzation = false;
     float var_floor = 1e-10;
-    float learn_rate_coef = 0.0;
     
     ParseOptions po(usage);
     po.Register("binary", &binary_write, "Write output in binary mode");
     po.Register("tied-normalization", &tied_normalzation, "The normalization is tied accross all the input dimensions");
     po.Register("var-floor", &var_floor, "Floor the variance, so the factors in <Rescale> are bounded.");
-    po.Register("learn-rate-coef", &learn_rate_coef, "Initialize learning-rate coefficient to a value.");
 
     po.Read(argc, argv);
 
@@ -56,7 +54,7 @@ int main(int argc, char *argv[]) {
     std::string transform_rxfilename = po.GetArg(1),
         model_out_filename = po.GetArg(2);
 
-    // read the matrix
+    //read the matrix
     Matrix<double> cmvn_stats;
     {
       bool binary_read;
@@ -66,14 +64,14 @@ int main(int argc, char *argv[]) {
     KALDI_ASSERT(cmvn_stats.NumRows() == 2);
     KALDI_ASSERT(cmvn_stats.NumCols() > 1);
 
-    // get the count
+    //get the count
     double count = cmvn_stats(0,cmvn_stats.NumCols()-1);
    
-    // buffers for shift and scale 
+    //buffers for shift and scale 
     Vector<BaseFloat> shift(cmvn_stats.NumCols()-1);
     Vector<BaseFloat> scale(cmvn_stats.NumCols()-1);
     
-    // compute the shift and scale per each dimension
+    //compute the shift and scale per each dimension
     for(int32 d=0; d<cmvn_stats.NumCols()-1; d++) {
       BaseFloat mean = cmvn_stats(0,d)/count;
       BaseFloat var = cmvn_stats(1,d)/count - mean*mean;
@@ -86,7 +84,7 @@ int main(int argc, char *argv[]) {
     }
 
     if(tied_normalzation) {
-      // just average the variances
+      //just average the variances
       BaseFloat sum_var = 0.0;
       for(int32 i=0; i<scale.Dim(); i++) {
         sum_var += 1.0 / (scale(i)*scale(i));
@@ -96,46 +94,40 @@ int main(int argc, char *argv[]) {
       scale.Set(tied_scale);
     }
 
-    // we will put the shift and scale to the nnet
+    //we will put the shift and scale to the nnet
     Nnet nnet;
 
-    // create the shift component
+    //create the shift component
     {
       AddShift* shift_component = new AddShift(shift.Dim(), shift.Dim());
-      // the pointer will be given to the nnet, so we don't need to call delete
+      //the pointer will be given to the nnet, so we don't need to call delete
       
-      // convert Vector to CuVector
+      //convert Vector to CuVector
       CuVector<BaseFloat> cu_shift(shift);
 
-      // set the weights
+      //set the weights
       shift_component->SetShiftVec(cu_shift);
 
-      // set the learn-rate coef
-      shift_component->SetLearnRateCoef(learn_rate_coef);
-
-      // append layer to the nnet
+      //append layer to the nnet
       nnet.AppendComponent(shift_component);
     }
 
-    // create the scale component
+    //create the scale component
     {
       Rescale* scale_component = new Rescale(scale.Dim(), scale.Dim());
-      // the pointer will be given to the nnet, so we don't need to call delete
+      //the pointer will be given to the nnet, so we don't need to call delete
       
-      // convert Vector to CuVector
+      //convert Vector to CuVector
       CuVector<BaseFloat> cu_scale(scale);
 
-      // set the weights
+      //set the weights
       scale_component->SetScaleVec(cu_scale);
 
-      // set the learn-rate coef
-      scale_component->SetLearnRateCoef(learn_rate_coef);
-
-      // append layer to the nnet
+      //append layer to the nnet
       nnet.AppendComponent(scale_component);
     }
       
-    // write the nnet
+    //write the nnet
     {
       Output ko(model_out_filename, binary_write);
       nnet.Write(ko.Stream(), binary_write);

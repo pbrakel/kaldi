@@ -24,7 +24,7 @@
 #include "nnet/nnet-pdf-prior.h"
 #include "base/kaldi-common.h"
 #include "util/common-utils.h"
-#include "base/timer.h"
+#include "util/timer.h"
 
 
 int main(int argc, char *argv[]) {
@@ -83,8 +83,7 @@ int main(int argc, char *argv[]) {
     Nnet nnet;
     nnet.Read(model_filename);
     //optionally remove softmax
-    if (no_softmax && nnet.GetComponent(nnet.NumComponents()-1).GetType() ==
-        kaldi::nnet1::Component::kSoftmax) {
+    if (no_softmax && nnet.GetComponent(nnet.NumComponents()-1).GetType() == Component::kSoftmax) {
       KALDI_LOG << "Removing softmax from the nnet " << model_filename;
       nnet.RemoveComponent(nnet.NumComponents()-1);
     }
@@ -92,8 +91,7 @@ int main(int argc, char *argv[]) {
     if (apply_log && no_softmax) {
       KALDI_ERR << "Nonsense option combination : --apply-log=true and --no-softmax=true";
     }
-    if (apply_log && nnet.GetComponent(nnet.NumComponents()-1).GetType() !=
-        kaldi::nnet1::Component::kSoftmax) {
+    if (apply_log && nnet.GetComponent(nnet.NumComponents()-1).GetType() != Component::kSoftmax) {
       KALDI_ERR << "Used --apply-log=true, but nnet " << model_filename 
                 << " does not have <softmax> as last component!";
     }

@@ -136,8 +136,6 @@ void TestEventTypeIo(bool binary) {
       }
     }
   }
-
-  unlink("tmpf");
 }
 
 const int32 kMaxVal = 20;

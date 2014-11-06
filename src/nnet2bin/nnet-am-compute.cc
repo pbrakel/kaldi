@@ -20,6 +20,7 @@
 #include "base/kaldi-common.h"
 #include "util/common-utils.h"
 #include "hmm/transition-model.h"
+#include "nnet2/nnet-randomize.h"
 #include "nnet2/train-nnet.h"
 #include "nnet2/am-nnet.h"
 
@@ -79,6 +80,9 @@ int main(int argc, char *argv[]) {
       std::string utt = feature_reader.Key();
       const CuMatrix<BaseFloat> &feats  = feature_reader.Value();
 
+      CuVector<BaseFloat> spk_info; // Empty vector for now, may later
+      // make it possible to set it.
+
       int32 output_frames = feats.NumRows(), output_dim = nnet.OutputDim();
       if (!pad_input)
         output_frames -= nnet.LeftContext() + nnet.RightContext();
@@ -88,7 +92,7 @@ int main(int argc, char *argv[]) {
         continue;
       }
       CuMatrix<BaseFloat> output(output_frames, output_dim);
-      NnetComputation(nnet, feats, pad_input, &output);
+      NnetComputation(nnet, feats, spk_info, pad_input, &output);
 
       if (apply_log) {
         output.ApplyFloor(1.0e-20);

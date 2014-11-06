@@ -1,0 +1,4 @@
+/.depend.mk
+/kaldi-math-test
+/io-funcs-test
+/kaldi-error-test

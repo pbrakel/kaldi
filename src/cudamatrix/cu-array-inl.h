@@ -30,7 +30,7 @@
 #include "cudamatrix/cu-kernels.h"
 #endif
 
-#include "base/timer.h"
+#include "util/timer.h"
 
 namespace kaldi {
 

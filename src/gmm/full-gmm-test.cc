@@ -324,9 +324,6 @@ UnitTestFullGmm() {
   }
 
   delete gmm;
-
-  unlink("tmpf");
-  unlink("tmpfb");
 }
 
 int

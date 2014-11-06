@@ -52,7 +52,7 @@ gunzip -c $lm \
   | utils/eps2disambig.pl | utils/s2eps.pl \
   | fstcompile --isymbols=$out_dir/words.txt --osymbols=$out_dir/words.txt \
     --keep_isymbols=false --keep_osymbols=false \
-  | fstrmepsilon | fstarcsort --sort_type=ilabel > $out_dir/G.fst
+  | fstrmepsilon > $out_dir/G.fst
 set +e
 fstisstochastic $out_dir/G.fst
 set -e
