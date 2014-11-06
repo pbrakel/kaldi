@@ -23,12 +23,9 @@ namespace kaldi {
 void UnitTestPldaEstimation(int32 dim) {
   int32 num_classes = 4000 + Rand() % 10;
   Matrix<double> between_proj(dim, dim);
-  while (between_proj.Cond() > 100)
-    between_proj.SetRandn();
+  between_proj.SetRandn();
   Matrix<double> within_proj(dim, dim);
-  while (within_proj.Cond() > 100)
-    within_proj.SetRandn();
-
+  within_proj.SetRandn();
   
   Vector<double> global_mean(dim);
   global_mean.SetRandn();

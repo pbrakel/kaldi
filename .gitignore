@@ -536,7 +536,6 @@ src/lmbin/arpa-to-const-arpa
 /src/nnet2bin/nnet-train-parallel
 /src/nnet2bin/nnet-train-simple
 /src/nnet2bin/nnet-train-transitions
-/src/nnet2bin/nnet-relabel-egs
 /src/nnet2bin/raw-nnet-concat
 /src/nnet2bin/raw-nnet-info
 

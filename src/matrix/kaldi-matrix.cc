@@ -1423,7 +1423,7 @@ Real MatrixBase<Real>::Cond() const {
     min = std::min((Real)std::abs(singular_values(i)), min); max = std::max((Real)std::abs(singular_values(i)), max);
   }
   if (min > 0) return max/min;
-  else return std::numeric_limits<Real>::infinity();
+  else return 1.0e+100;
 }
 
 template<typename Real>

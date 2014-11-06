@@ -304,9 +304,7 @@ static void TestRefineClusters() {
     BaseFloat points_objf = SumClusterableObjf(points),
         clust_objf_before = SumClusterableObjf(clusters),
         clust_objf_after;
-
-    KALDI_ASSERT(points_objf >= clust_objf_before -
-                 (std::abs(points_objf)+std::abs(clust_objf_before))*0.001);
+    AssertGeq(points_objf, clust_objf_before);
 
     RefineClustersOptions cfg;
     cfg.num_iters = 10000;  // very large.

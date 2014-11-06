@@ -558,7 +558,7 @@ bool SpMatrix<Real>::ApproxEqual(const SpMatrix<Real> &other, float tol) const {
 // function Floor: A = Floor(B, alpha * C) ... see tutorial document.
 template<typename Real>
 int SpMatrix<Real>::ApplyFloor(const SpMatrix<Real> &C, Real alpha,
-                               bool verbose) {
+                               bool verbose, bool is_psd) {
   MatrixIndexT dim = this->NumRows();
   int nfloored = 0;
   KALDI_ASSERT(C.NumRows() == dim);
@@ -577,9 +577,14 @@ int SpMatrix<Real>::ApplyFloor(const SpMatrix<Real> &C, Real alpha,
 
   Vector<Real> l(dim);
   Matrix<Real> U(dim, dim);
-
-  D.Eig(&l, &U);
-
+  if (is_psd)
+    D.SymPosSemiDefEig(&l, &U);
+  else
+    D.Eig(&l, &U);
+  // We added the "Eig" function more recently.  It's not as accurate as in the
+  // symmetric positive semidefinite case, so we only use it if the user says
+  // the calling matrix is not positive semidefinite.
+  // [Note: we since changed it to be more accurate.]
   if (verbose) {
     KALDI_LOG << "ApplyFloor: flooring following diagonal to 1: " << l;
   }

@@ -372,8 +372,7 @@ class MatrixBase {
   void TestUninitialized() const; // This function is designed so that if any element
   // if the matrix is uninitialized memory, valgrind will complain.
   
-  /// Returns condition number by computing Svd.  Works even if cols > rows.
-  /// Returns infinity if all singular values are zero.
+  /// returns condition number by computing Svd.  Works even if cols > rows.
   Real Cond() const;
 
   /// Returns true if matrix is Symmetric.

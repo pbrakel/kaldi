@@ -1,7 +1,6 @@
 // fstext/remove-eps-local-inl.h
 
 // Copyright 2009-2011  Microsoft Corporation
-//                2014  Johns Hopkins University (author: Daniel Povey
 
 // See ../../COPYING for clarification regarding multiple authors
 //
@@ -33,8 +32,7 @@ struct ReweightPlusDefault {
 };
 
 struct ReweightPlusLogArc {
-  inline TropicalWeight operator () (const TropicalWeight &a,
-                                     const TropicalWeight &b) {
+  inline TropicalWeight operator () (const TropicalWeight &a, const TropicalWeight &b) {
     LogWeight a_log(a.Value()), b_log(b.Value());
     return TropicalWeight(Plus(a_log, b_log).Value());
   }
@@ -64,10 +62,8 @@ class RemoveEpsLocalClass {
  private:
   MutableFst<Arc> *fst_;
   StateId non_coacc_state_;  //  use this to delete arcs: make it nextstate
-  vector<StateId> num_arcs_in_;   // The number of arcs into the state, plus one
-                                  // if it's the start state.
-  vector<StateId> num_arcs_out_;  // The number of arcs out of the state, plus
-                                  // one if it's a final state.
+  vector<StateId> num_arcs_in_;
+  vector<StateId> num_arcs_out_;
   ReweightPlus reweight_plus_;
 
   bool CanCombineArcs(const Arc &a, const Arc &b, Arc *c) {
@@ -312,8 +308,7 @@ void RemoveEpsLocal(MutableFst<Arc> *fst) {
 
 
 void RemoveEpsLocalSpecial(MutableFst<StdArc> *fst) {
-  // work gets done in initializer.
-  RemoveEpsLocalClass<StdArc, ReweightPlusLogArc> c(fst);  
+  RemoveEpsLocalClass<StdArc, ReweightPlusLogArc> c(fst);  // work gets done in initializer.
 }
 
 } // end namespace fst.
